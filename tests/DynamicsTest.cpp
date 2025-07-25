@@ -9,9 +9,8 @@
 // std
 #include <iostream>
 
-// boost
-#define BOOST_TEST_MODULE Dynamics
-#include <boost/test/unit_test.hpp>
+// google test
+#include <gtest/gtest.h>
 
 // SpaceVecAlg
 #include <SpaceVecAlg/SpaceVecAlg>
@@ -39,7 +38,7 @@ static constexpr double PI = 3.141592653589793238462643383279502884e+00;
 
 const double TOL = 0.0000001;
 
-BOOST_AUTO_TEST_CASE(OneBody)
+TEST(DynamicsTest, OneBody)
 {
   using namespace Eigen;
   using namespace sva;
@@ -76,8 +75,8 @@ BOOST_AUTO_TEST_CASE(OneBody)
   InverseDynamics id(mb);
   id.inverseDynamics(mb, mbc);
 
-  BOOST_CHECK_EQUAL(int(id.f().size()), mb.nrBodies());
-  BOOST_CHECK_SMALL(mbc.jointTorque[1][0], TOL);
+  EXPECT_EQ(int(id.f().size()), mb.nrBodies());
+  EXPECT_NEAR(mbc.jointTorque[1][0], 0.0, TOL);
 
   mbc.q = {{}, {rbd::PI}};
   forwardKinematics(mb, mbc);
@@ -85,7 +84,7 @@ BOOST_AUTO_TEST_CASE(OneBody)
   id.inverseDynamics(mb, mbc);
 
   std::cout << std::endl;
-  BOOST_CHECK_SMALL(mbc.jointTorque[1][0], TOL);
+  EXPECT_NEAR(mbc.jointTorque[1][0], 0.0, TOL);
 
   mbc.q = {{}, {rbd::PI / 2.}};
   forwardKinematics(mb, mbc);
@@ -93,7 +92,7 @@ BOOST_AUTO_TEST_CASE(OneBody)
   id.inverseDynamics(mb, mbc);
 
   double torque = Vector3d(0., 0., 0.5).cross(Vector3d(0., 9.81, 0.))(0);
-  BOOST_CHECK_SMALL(std::abs(torque - mbc.jointTorque[1][0]), TOL);
+  EXPECT_NEAR(std::abs(torque - mbc.jointTorque[1][0]), 0.0, TOL);
 
   MultiBodyConfig mbc2 = mbc;
   mbc2.gravity = Vector3d::Zero();
@@ -104,7 +103,7 @@ BOOST_AUTO_TEST_CASE(OneBody)
   id.inverseDynamics(mb, mbc2);
 
   torque = Vector3d(0., 0., 0.5).cross(Vector3d(0., -9.81, 0.))(0);
-  BOOST_CHECK_SMALL(std::abs(torque - mbc2.jointTorque[1][0]), TOL);
+  EXPECT_NEAR(std::abs(torque - mbc2.jointTorque[1][0]), 0.0, TOL);
 }
 
 void makeRandomVecVec(std::vector<std::vector<double>> & vec)
@@ -189,7 +188,7 @@ Eigen::MatrixXd makeHFromID(const rbd::MultiBody & mb,
   return H;
 }
 
-BOOST_AUTO_TEST_CASE(IDvsFDFixed)
+TEST(DynamicsTest, IDvsFDFixed)
 {
   using namespace Eigen;
   using namespace sva;
@@ -246,7 +245,7 @@ BOOST_AUTO_TEST_CASE(IDvsFDFixed)
   mbc.gravity = Vector3d::Zero();
   fd.computeC(mb, mbc);
 
-  BOOST_CHECK(fd.C().isZero());
+  EXPECT_TRUE(fd.C().isZero());
 
   // check FD C against ID C
   mbc.gravity = Vector3d(0., -9.81, 0.);
@@ -272,9 +271,9 @@ BOOST_AUTO_TEST_CASE(IDvsFDFixed)
   }
 
 #ifdef __i386__
-  BOOST_CHECK_SMALL((fd.C() - ID_C).array().abs().sum(), TOL);
+  EXPECT_NEAR((fd.C() - ID_C).array().abs().sum(), 0.0, TOL);
 #else
-  BOOST_CHECK_EQUAL(fd.C(), ID_C);
+  EXPECT_EQ(fd.C(), ID_C);
 #endif
 
   // check FD H against ID H
@@ -286,14 +285,14 @@ BOOST_AUTO_TEST_CASE(IDvsFDFixed)
   fd.forwardDynamics(mb, mbc);
   MatrixXd ID_H = makeHFromID(mb, mbc, id, fd.C());
 
-  BOOST_CHECK_SMALL((fd.H() - ID_H).norm(), 1e-10);
+  EXPECT_NEAR((fd.H() - ID_H).norm(), 0.0, 1e-10);
 
   // check symmetry
 
   MatrixXd L = fd.H().triangularView<Lower>();
   MatrixXd U = fd.H().triangularView<Upper>().transpose();
 
-  BOOST_CHECK_SMALL((L - U).norm(), 1e-10);
+  EXPECT_NEAR((L - U).norm(), 0.0, 1e-10);
 
   // check torque and acceleration output
 
@@ -312,7 +311,7 @@ BOOST_AUTO_TEST_CASE(IDvsFDFixed)
 
   paramToVector(mbc.jointTorque, vT2);
 
-  BOOST_CHECK_SMALL((vT1 - vT2).norm(), 1e-10);
+  EXPECT_NEAR((vT1 - vT2).norm(), 0.0, 1e-10);
 
   // alphaD -> ID -> torque -> FD -> alphaD
   makeRandomConfig(mbc);
@@ -329,10 +328,10 @@ BOOST_AUTO_TEST_CASE(IDvsFDFixed)
 
   paramToVector(mbc.alphaD, vA2);
 
-  BOOST_CHECK_SMALL((vA1 - vA2).norm(), 1e-10);
+  EXPECT_NEAR((vA1 - vA2).norm(), 0.0, 1e-10);
 }
 
-BOOST_AUTO_TEST_CASE(IDvsFDFree)
+TEST(DynamicsTest, IDvsFDFree)
 {
   using namespace Eigen;
   using namespace sva;
@@ -389,7 +388,7 @@ BOOST_AUTO_TEST_CASE(IDvsFDFree)
   mbc.gravity = Vector3d::Zero();
   fd.computeC(mb, mbc);
 
-  BOOST_CHECK(fd.C().isZero());
+  EXPECT_TRUE(fd.C().isZero());
 
   // check FD C against ID C
   mbc.gravity = Vector3d(0., -9.81, 0.);
@@ -415,9 +414,9 @@ BOOST_AUTO_TEST_CASE(IDvsFDFree)
   }
 
 #ifdef __i386__
-  BOOST_CHECK_SMALL((fd.C() - ID_C).array().abs().sum(), TOL);
+  EXPECT_NEAR((fd.C() - ID_C).array().abs().sum(), 0.0, TOL);
 #else
-  BOOST_CHECK_EQUAL(fd.C(), ID_C);
+  EXPECT_EQ(fd.C(), ID_C);
 #endif
 
   // check FD H against ID H
@@ -429,14 +428,14 @@ BOOST_AUTO_TEST_CASE(IDvsFDFree)
   fd.forwardDynamics(mb, mbc);
   MatrixXd ID_H = makeHFromID(mb, mbc, id, fd.C());
 
-  BOOST_CHECK_SMALL((fd.H() - ID_H).norm(), 1e-10);
+  EXPECT_NEAR((fd.H() - ID_H).norm(), 0.0, 1e-10);
 
   // check symmetry
 
   MatrixXd L = fd.H().triangularView<Lower>();
   MatrixXd U = fd.H().triangularView<Upper>().transpose();
 
-  BOOST_CHECK_SMALL((L - U).norm(), 1e-10);
+  EXPECT_NEAR((L - U).norm(), 0.0, 1e-10);
 
   // check torque and acceleration output
 
@@ -458,9 +457,9 @@ BOOST_AUTO_TEST_CASE(IDvsFDFree)
   paramToVector(mbc.jointTorque, vT2);
 
 #ifndef WIN32
-  BOOST_CHECK_SMALL((vT1 - vT2).norm(), 1e-9);
+  EXPECT_NEAR((vT1 - vT2).norm(), 0.0, 1e-9);
 #else
-  BOOST_CHECK_SMALL((vT1 - vT2).norm(), 1e-8);
+  EXPECT_NEAR((vT1 - vT2).norm(), 0.0, 1e-8);
 #endif
 
   // alphaD -> ID -> torque -> FD -> alphaD
@@ -478,20 +477,20 @@ BOOST_AUTO_TEST_CASE(IDvsFDFree)
 
   paramToVector(mbc.alphaD, vA2);
 
-  BOOST_CHECK_SMALL((vA1 - vA2).norm(), 1e-10);
+  EXPECT_NEAR((vA1 - vA2).norm(), 0.0, 1e-10);
 }
 
-BOOST_AUTO_TEST_CASE(MultiBodyGraphMerge)
+TEST(DynamicsTest, MultiBodyGraphMerge)
 {
   rbd::MultiBody mb;
   rbd::MultiBodyConfig mbc;
   rbd::MultiBodyGraph mbg;
   std::tie(mb, mbc, mbg) = makeXYZSarm();
 
-  BOOST_CHECK_EQUAL(mbg.nrNodes(), 5);
-  BOOST_CHECK_EQUAL(mbg.nrJoints(), 4);
-  BOOST_CHECK_EQUAL(mb.nrBodies(), 5);
-  BOOST_CHECK_EQUAL(mb.nrJoints(), 5);
+  EXPECT_EQ(mbg.nrNodes(), 5);
+  EXPECT_EQ(mbg.nrJoints(), 4);
+  EXPECT_EQ(mb.nrBodies(), 5);
+  EXPECT_EQ(mb.nrJoints(), 5);
 
   forwardKinematics(mb, mbc);
   forwardVelocity(mb, mbc);
@@ -508,14 +507,20 @@ BOOST_AUTO_TEST_CASE(MultiBodyGraphMerge)
 
   rbd::MultiBody mbMerged = mbg.makeMultiBody("b0", true);
 
-  BOOST_CHECK_EQUAL(mbg.nrNodes(), 2);
-  BOOST_CHECK_EQUAL(mbg.nrJoints(), 1);
-  BOOST_CHECK_EQUAL(mbMerged.nrBodies(), 2);
-  BOOST_CHECK_EQUAL(mbMerged.nrJoints(), 2);
+  EXPECT_EQ(mbg.nrNodes(), 2);
+  EXPECT_EQ(mbg.nrJoints(), 1);
+  EXPECT_EQ(mbMerged.nrBodies(), 2);
+  EXPECT_EQ(mbMerged.nrJoints(), 2);
 
   rbd::ForwardDynamics fd(mb);
   fd.forwardDynamics(mb, mbc);
   double error = (fd.inertiaSubTree()[1].matrix() - mbMerged.body(1).inertia().matrix()).norm();
 
-  BOOST_CHECK_SMALL(error, TOL);
+  EXPECT_NEAR(error, 0.0, TOL);
+}
+
+int main(int argc, char ** argv)
+{
+  testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }

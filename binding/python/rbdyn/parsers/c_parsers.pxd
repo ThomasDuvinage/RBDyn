@@ -48,7 +48,7 @@ cdef extern from "<RBDyn/parsers/common.h>" namespace "rbd::parsers":
 
     cdef cppclass Geometry:
         GeometryType _type "type"
-        # data is boost::variant so it is exposed through the wrapper
+        # data is std::variant so it is exposed through the wrapper
 
     cdef cppclass Visual:
         string name

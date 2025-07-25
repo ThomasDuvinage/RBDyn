@@ -6,9 +6,9 @@
 // std
 #include <iostream>
 
-// boost
-#define BOOST_TEST_MODULE Jacobian
-#include <boost/test/unit_test.hpp>
+// google test
+#include "CollectionTest.h"
+#include <gtest/gtest.h>
 
 // SpaceVecAlg
 #include <SpaceVecAlg/SpaceVecAlg>
@@ -48,23 +48,23 @@ void checkMultiBodyEq(const rbd::MultiBody & mb,
                       std::vector<sva::PTransformd> Xt)
 {
   // bodies
-  BOOST_CHECK_EQUAL_COLLECTIONS(mb.bodies().begin(), mb.bodies().end(), bodies.begin(), bodies.end());
+  EXPECT_TRUE(CheckEqualCollections(mb.bodies().begin(), mb.bodies().end(), bodies.begin()));
   // joints
-  BOOST_CHECK_EQUAL_COLLECTIONS(mb.joints().begin(), mb.joints().end(), joints.begin(), joints.end());
+  EXPECT_TRUE(CheckEqualCollections(mb.joints().begin(), mb.joints().end(), joints.begin()));
   // pred
-  BOOST_CHECK_EQUAL_COLLECTIONS(mb.predecessors().begin(), mb.predecessors().end(), pred.begin(), pred.end());
+  EXPECT_TRUE(CheckEqualCollections(mb.predecessors().begin(), mb.predecessors().end(), pred.begin()));
   // succ
-  BOOST_CHECK_EQUAL_COLLECTIONS(mb.successors().begin(), mb.successors().end(), succ.begin(), succ.end());
+  EXPECT_TRUE(CheckEqualCollections(mb.successors().begin(), mb.successors().end(), succ.begin()));
   // parent
-  BOOST_CHECK_EQUAL_COLLECTIONS(mb.parents().begin(), mb.parents().end(), parent.begin(), parent.end());
+  EXPECT_TRUE(CheckEqualCollections(mb.parents().begin(), mb.parents().end(), parent.begin()));
 
   // Xt
-  BOOST_CHECK_EQUAL_COLLECTIONS(mb.transforms().begin(), mb.transforms().end(), Xt.begin(), Xt.end());
+  EXPECT_TRUE(CheckEqualCollections(mb.transforms().begin(), mb.transforms().end(), Xt.begin()));
 
   // nrBodies
-  BOOST_CHECK_EQUAL(mb.nrBodies(), bodies.size());
+  EXPECT_EQ(mb.nrBodies(), bodies.size());
   // nrJoints
-  BOOST_CHECK_EQUAL(mb.nrJoints(), bodies.size());
+  EXPECT_EQ(mb.nrJoints(), bodies.size());
 
   int params = 0, dof = 0;
   for(std::size_t i = 0; i < joints.size(); ++i)
@@ -73,11 +73,11 @@ void checkMultiBodyEq(const rbd::MultiBody & mb,
     dof += joints[i].dof();
   }
 
-  BOOST_CHECK_EQUAL(params, mb.nrParams());
-  BOOST_CHECK_EQUAL(dof, mb.nrDof());
+  EXPECT_EQ(params, mb.nrParams());
+  EXPECT_EQ(dof, mb.nrDof());
 }
 
-BOOST_AUTO_TEST_CASE(JacobianConstructTest)
+TEST(JacobianTest, JacobianConstructTest)
 {
   using namespace Eigen;
   using namespace sva;
@@ -95,10 +95,9 @@ BOOST_AUTO_TEST_CASE(JacobianConstructTest)
   std::vector<int> jointPath1 = {0, 1, 2, 3};
   std::vector<int> jointPath2 = {0, 1, 4};
 
-  BOOST_CHECK_EQUAL_COLLECTIONS(jointPath1.begin(), jointPath1.end(), jac1.jointsPath().begin(),
-                                jac1.jointsPath().end());
-  BOOST_CHECK_EQUAL_COLLECTIONS(jointPath2.begin(), jointPath2.end(), jac2.jointsPath().begin(),
-                                jac2.jointsPath().end());
+  EXPECT_TRUE(CheckEqualCollections(jointPath1.begin(), jointPath1.end(), jac1.jointsPath().begin()));
+
+  EXPECT_TRUE(CheckEqualCollections(jointPath2.begin(), jointPath2.end(), jac2.jointsPath().begin()));
 
   // test subMultibody
   MultiBody chain1 = jac1.subMultiBody(mb);
@@ -134,7 +133,7 @@ BOOST_AUTO_TEST_CASE(JacobianConstructTest)
   checkMultiBodyEq(chain2, bodies, joints, pred, succ, parent, Xt);
 
   // test subMultiBody safe version
-  BOOST_CHECK_THROW(jac1.sSubMultiBody(chain2), std::domain_error);
+  EXPECT_THROW(jac1.sSubMultiBody(chain2), std::domain_error);
 }
 
 void checkJacobianMatrixFromVelocity(const rbd::MultiBody & subMb,
@@ -155,7 +154,7 @@ void checkJacobianMatrixFromVelocity(const rbd::MultiBody & subMb,
 
       Eigen::Vector6d mv = velVec.back().vector();
 
-      BOOST_CHECK_SMALL((mv - jacMat.col(col)).norm(), TOL);
+      EXPECT_NEAR((mv - jacMat.col(col)).norm(), 0.0, TOL);
 
       subMbc.alpha[ui][uj] = 0.;
       ++col;
@@ -166,8 +165,8 @@ void checkJacobianMatrixFromVelocity(const rbd::MultiBody & subMb,
 void checkJacobianMatrixSize(const rbd::MultiBody & subMb, const Eigen::MatrixXd & jacMat)
 {
   // test jacobian size
-  BOOST_CHECK_EQUAL(jacMat.rows(), 6);
-  BOOST_CHECK_EQUAL(jacMat.cols(), subMb.nrDof());
+  EXPECT_EQ(jacMat.rows(), 6);
+  EXPECT_EQ(jacMat.cols(), subMb.nrDof());
 }
 
 void checkFullJacobianMatrix(const rbd::MultiBody & mb,
@@ -180,9 +179,9 @@ void checkFullJacobianMatrix(const rbd::MultiBody & mb,
   MatrixXd fakeFull1(5, mb.nrDof());
   MatrixXd fakeFull2(6, mb.nrDof() + 1);
   MatrixXd fullJacMat(6, mb.nrDof());
-  BOOST_CHECK_THROW(jac.sFullJacobian(mb, jacMat, fakeFull1), std::domain_error);
-  BOOST_CHECK_THROW(jac.sFullJacobian(mb, jacMat, fakeFull2), std::domain_error);
-  BOOST_CHECK_NO_THROW(jac.sFullJacobian(mb, jacMat, fullJacMat));
+  EXPECT_THROW(jac.sFullJacobian(mb, jacMat, fakeFull1), std::domain_error);
+  EXPECT_THROW(jac.sFullJacobian(mb, jacMat, fakeFull2), std::domain_error);
+  EXPECT_NO_THROW(jac.sFullJacobian(mb, jacMat, fullJacMat));
 
   for(int i = 0; i < subMb.nrJoints(); ++i)
   {
@@ -190,8 +189,7 @@ void checkFullJacobianMatrix(const rbd::MultiBody & mb,
     int joint = jac.jointsPath()[ui];
     int dof = subMb.joint(i).dof();
 
-    BOOST_CHECK_EQUAL(jacMat.block(0, subMb.jointPosInDof(i), 6, dof),
-                      fullJacMat.block(0, mb.jointPosInDof(joint), 6, dof));
+    EXPECT_EQ(jacMat.block(0, subMb.jointPosInDof(i), 6, dof), fullJacMat.block(0, mb.jointPosInDof(joint), 6, dof));
   }
 }
 
@@ -263,7 +261,7 @@ void checkJacobianRefBody(const rbd::MultiBody & mb, const rbd::MultiBodyConfig 
   checkJacobianMatrixFromVelocity(subMb, subMbc, subMbc.bodyVelB, jac_mat_w);
 }
 
-BOOST_AUTO_TEST_CASE(JacobianComputeTest)
+TEST(JacobianTest, JacobianComputeTest)
 {
   using namespace Eigen;
   using namespace sva;
@@ -294,18 +292,18 @@ BOOST_AUTO_TEST_CASE(JacobianComputeTest)
   // test jacobian safe version
   MultiBodyConfig mbcBadNrBodyPos(mbc);
   mbcBadNrBodyPos.bodyPosW.resize(1);
-  BOOST_CHECK_THROW(jac1.sJacobian(mb, mbcBadNrBodyPos), std::domain_error);
+  EXPECT_THROW(jac1.sJacobian(mb, mbcBadNrBodyPos), std::domain_error);
 
   MultiBodyConfig mbcBadNrJointConf(mbc);
   mbcBadNrJointConf.motionSubspace.resize(1);
-  BOOST_CHECK_THROW(jac1.sJacobian(mb, mbcBadNrJointConf), std::domain_error);
+  EXPECT_THROW(jac1.sJacobian(mb, mbcBadNrJointConf), std::domain_error);
 
   MultiBody mbErr = jac2.subMultiBody(mb);
   MultiBodyConfig mbcErr(mbErr);
-  BOOST_CHECK_THROW(jac1.sJacobian(mbErr, mbcErr), std::domain_error);
+  EXPECT_THROW(jac1.sJacobian(mbErr, mbcErr), std::domain_error);
 }
 
-BOOST_AUTO_TEST_CASE(JacobianRefBodyTest)
+TEST(JacobianTest, JacobianRefBodyTest)
 {
   using namespace Eigen;
   using namespace sva;
@@ -344,18 +342,18 @@ BOOST_AUTO_TEST_CASE(JacobianRefBodyTest)
   // test jacobian safe version
   MultiBodyConfig mbcBadNrBodyPos(mbc);
   mbcBadNrBodyPos.bodyPosW.resize(1);
-  BOOST_CHECK_THROW(jac1.sJacobian(mb, mbcBadNrBodyPos), std::domain_error);
+  EXPECT_THROW(jac1.sJacobian(mb, mbcBadNrBodyPos), std::domain_error);
 
   MultiBodyConfig mbcBadNrJointConf(mbc);
   mbcBadNrJointConf.motionSubspace.resize(1);
-  BOOST_CHECK_THROW(jac1.sJacobian(mb, mbcBadNrJointConf), std::domain_error);
+  EXPECT_THROW(jac1.sJacobian(mb, mbcBadNrJointConf), std::domain_error);
 
   MultiBody mbErr = jac2.subMultiBody(mb);
   MultiBodyConfig mbcErr(mbErr);
-  BOOST_CHECK_THROW(jac1.sJacobian(mbErr, mbcErr), std::domain_error);
+  EXPECT_THROW(jac1.sJacobian(mbErr, mbcErr), std::domain_error);
 }
 
-BOOST_AUTO_TEST_CASE(JacobianComputeTestFreeFlyer)
+TEST(JacobianTest, JacobianComputeTestFreeFlyer)
 {
   using namespace Eigen;
   using namespace sva;
@@ -395,18 +393,18 @@ BOOST_AUTO_TEST_CASE(JacobianComputeTestFreeFlyer)
   // test jacobian safe version
   MultiBodyConfig mbcBadNrBodyPos(mbc);
   mbcBadNrBodyPos.bodyPosW.resize(1);
-  BOOST_CHECK_THROW(jac1.sJacobian(mb, mbcBadNrBodyPos), std::domain_error);
+  EXPECT_THROW(jac1.sJacobian(mb, mbcBadNrBodyPos), std::domain_error);
 
   MultiBodyConfig mbcBadNrJointConf(mbc);
   mbcBadNrJointConf.motionSubspace.resize(1);
-  BOOST_CHECK_THROW(jac1.sJacobian(mb, mbcBadNrJointConf), std::domain_error);
+  EXPECT_THROW(jac1.sJacobian(mb, mbcBadNrJointConf), std::domain_error);
 
   MultiBody mbErr = jac2.subMultiBody(mb);
   MultiBodyConfig mbcErr(mbErr);
-  BOOST_CHECK_THROW(jac1.sJacobian(mbErr, mbcErr), std::domain_error);
+  EXPECT_THROW(jac1.sJacobian(mbErr, mbcErr), std::domain_error);
 }
 
-BOOST_AUTO_TEST_CASE(JacobianComputeTest2)
+TEST(JacobianTest, JacobianComputeTest2)
 {
   using namespace Eigen;
   using namespace sva;
@@ -490,15 +488,15 @@ void testJacobianDot(const rbd::MultiBody & mb, const rbd::MultiBodyConfig & mbc
   MatrixXd JD_diff = makeJDotFromStep(mb, mbc, std::bind(worldJacobian_t(&rbd::Jacobian::jacobian), jac, _1, _2));
   MatrixXd JD = jac.jacobianDot(mb, mbc);
 
-  BOOST_CHECK_SMALL((JD_diff - JD).norm(), 2e-5);
+  EXPECT_NEAR((JD_diff - JD).norm(), 0.0, 2e-5);
 
   MatrixXd JD_diff_b = makeJDotFromStep(mb, mbc, std::bind(&rbd::Jacobian::bodyJacobian, jac, _1, _2));
   MatrixXd JD_b = jac.bodyJacobianDot(mb, mbc);
 
-  BOOST_CHECK_SMALL((JD_diff_b - JD_b).norm(), 2e-5);
+  EXPECT_NEAR((JD_diff_b - JD_b).norm(), 0.0, 2e-5);
 }
 
-BOOST_AUTO_TEST_CASE(JacobianDotComputeTest)
+TEST(JacobianTest, JacobianDotComputeTest)
 {
   using namespace Eigen;
   using namespace sva;
@@ -680,7 +678,7 @@ void testTranslateJacobian(const rbd::MultiBody & mb,
   MatrixXd JO_P_w = JO_w;
   jacO.translateJacobian(JO_w, mbc, P, JO_P_w);
 
-  BOOST_CHECK_SMALL((JO_P_w - JP_w).norm(), TOL);
+  EXPECT_NEAR((JO_P_w - JP_w).norm(), 0.0, TOL);
 
   MatrixXd JO_b = jacO.jacobian(mb, mbc);
   MatrixXd JP_b = jacP.jacobian(mb, mbc);
@@ -688,10 +686,10 @@ void testTranslateJacobian(const rbd::MultiBody & mb,
   MatrixXd JO_P_b = JO_b;
   jacO.translateJacobian(JO_b, mbc, P, JO_P_b);
 
-  BOOST_CHECK_SMALL((JO_P_b - JP_b).norm(), TOL);
+  EXPECT_NEAR((JO_P_b - JP_b).norm(), 0.0, TOL);
 }
 
-BOOST_AUTO_TEST_CASE(JacobianTranslateTest)
+TEST(JacobianTest, JacobianTranslateTest)
 {
   using namespace Eigen;
   using namespace sva;
@@ -750,7 +748,7 @@ Eigen::MatrixXd jacobianVecFromJac(const rbd::MultiBody & mb,
   return jacV - jacO;
 }
 
-BOOST_AUTO_TEST_CASE(JacobianVectorTest)
+TEST(JacobianTest, JacobianVectorTest)
 {
   rbd::MultiBody mb;
   rbd::MultiBodyConfig mbc;
@@ -780,23 +778,23 @@ BOOST_AUTO_TEST_CASE(JacobianVectorTest)
     Eigen::MatrixXd jac1MatDiff = jacobianVecBodyFromJac(mb, mbc, jac1, vec);
     Eigen::MatrixXd jac1Mat = jac1.vectorBodyJacobian(mb, mbc, vec);
 
-    BOOST_CHECK_SMALL((jac1MatDiff.block(3, 0, 3, jac1.dof()) - jac1Mat.block(3, 0, 3, jac1.dof())).norm(), TOL);
+    EXPECT_NEAR((jac1MatDiff.block(3, 0, 3, jac1.dof()) - jac1Mat.block(3, 0, 3, jac1.dof())).norm(), 0.0, TOL);
 
     Eigen::MatrixXd jac2MatDiff = jacobianVecBodyFromJac(mb, mbc, jac2, vec);
     Eigen::MatrixXd jac2Mat = jac2.vectorBodyJacobian(mb, mbc, vec);
 
-    BOOST_CHECK_SMALL((jac2MatDiff.block(3, 0, 3, jac2.dof()) - jac2Mat.block(3, 0, 3, jac2.dof())).norm(), TOL);
+    EXPECT_NEAR((jac2MatDiff.block(3, 0, 3, jac2.dof()) - jac2Mat.block(3, 0, 3, jac2.dof())).norm(), 0.0, TOL);
 
     // vector
     Eigen::MatrixXd jac3MatDiff = jacobianVecFromJac(mb, mbc, jac1, vec);
     Eigen::MatrixXd jac3Mat = jac1.vectorJacobian(mb, mbc, vec);
 
-    BOOST_CHECK_SMALL((jac3MatDiff.block(3, 0, 3, jac1.dof()) - jac3Mat.block(3, 0, 3, jac1.dof())).norm(), TOL);
+    EXPECT_NEAR((jac3MatDiff.block(3, 0, 3, jac1.dof()) - jac3Mat.block(3, 0, 3, jac1.dof())).norm(), 0.0, TOL);
 
     Eigen::MatrixXd jac4MatDiff = jacobianVecFromJac(mb, mbc, jac2, vec);
     Eigen::MatrixXd jac4Mat = jac2.vectorJacobian(mb, mbc, vec);
 
-    BOOST_CHECK_SMALL((jac4MatDiff.block(3, 0, 3, jac2.dof()) - jac4Mat.block(3, 0, 3, jac2.dof())).norm(), TOL);
+    EXPECT_NEAR((jac4MatDiff.block(3, 0, 3, jac2.dof()) - jac4Mat.block(3, 0, 3, jac2.dof())).norm(), 0.0, TOL);
   }
 }
 
@@ -817,7 +815,7 @@ Eigen::Vector6d testMatrixAgainstVector(const rbd::MultiBody & mb,
   return mv.vector() - res;
 }
 
-BOOST_AUTO_TEST_CASE(JacobianVectorVelAccComputeTest)
+TEST(JacobianTest, JacobianVectorVelAccComputeTest)
 {
   using namespace Eigen;
   using namespace sva;
@@ -855,48 +853,46 @@ BOOST_AUTO_TEST_CASE(JacobianVectorVelAccComputeTest)
     {
       jac.point(point);
 
-      BOOST_CHECK_SMALL(
-          testMatrixAgainstVector(mb, mbc, jac, std::bind(worldJacobian_t(&Jacobian::jacobian), std::ref(jac), _1, _2),
-                                  alpha, std::bind(worldVelocity_t(&Jacobian::velocity), std::ref(jac), _1, _2))
-              .norm(),
-          TOL);
+      EXPECT_NEAR(testMatrixAgainstVector(mb, mbc, jac,
+                                          std::bind(worldJacobian_t(&Jacobian::jacobian), std::ref(jac), _1, _2), alpha,
+                                          std::bind(worldVelocity_t(&Jacobian::velocity), std::ref(jac), _1, _2))
+                      .norm(),
+                  0.0, TOL);
 
-      BOOST_CHECK_SMALL(testMatrixAgainstVector(mb, mbc, jac, std::bind(&Jacobian::bodyJacobian, std::ref(jac), _1, _2),
-                                                alpha, std::bind(&Jacobian::bodyVelocity, std::ref(jac), _1, _2))
-                            .norm(),
-                        TOL);
+      EXPECT_NEAR(testMatrixAgainstVector(mb, mbc, jac, std::bind(&Jacobian::bodyJacobian, std::ref(jac), _1, _2),
+                                          alpha, std::bind(&Jacobian::bodyVelocity, std::ref(jac), _1, _2))
+                      .norm(),
+                  0.0, TOL);
 
       typedef MotionVecd (Jacobian::*normalAccel_func1)(const MultiBody &, const MultiBodyConfig &) const;
       typedef MotionVecd (Jacobian::*normalAccel_func2)(const MultiBody &, const MultiBodyConfig &,
                                                         const std::vector<sva::MotionVecd> &) const;
 
-      BOOST_CHECK_SMALL(testMatrixAgainstVector(mb, mbc, jac, std::bind(&Jacobian::jacobianDot, std::ref(jac), _1, _2),
-                                                alpha,
-                                                std::bind(static_cast<normalAccel_func1>(&Jacobian::normalAcceleration),
-                                                          std::ref(jac), _1, _2))
-                            .norm(),
-                        TOL);
+      EXPECT_NEAR(testMatrixAgainstVector(
+                      mb, mbc, jac, std::bind(&Jacobian::jacobianDot, std::ref(jac), _1, _2), alpha,
+                      std::bind(static_cast<normalAccel_func1>(&Jacobian::normalAcceleration), std::ref(jac), _1, _2))
+                      .norm(),
+                  0.0, TOL);
 
-      BOOST_CHECK_SMALL(
-          testMatrixAgainstVector(
-              mb, mbc, jac, std::bind(&Jacobian::bodyJacobianDot, std::ref(jac), _1, _2), alpha,
-              std::bind(static_cast<normalAccel_func1>(&Jacobian::bodyNormalAcceleration), std::ref(jac), _1, _2))
-              .norm(),
-          TOL);
+      EXPECT_NEAR(testMatrixAgainstVector(mb, mbc, jac, std::bind(&Jacobian::bodyJacobianDot, std::ref(jac), _1, _2),
+                                          alpha,
+                                          std::bind(static_cast<normalAccel_func1>(&Jacobian::bodyNormalAcceleration),
+                                                    std::ref(jac), _1, _2))
+                      .norm(),
+                  0.0, TOL);
 
-      BOOST_CHECK_SMALL(testMatrixAgainstVector(mb, mbc, jac, std::bind(&Jacobian::jacobianDot, std::ref(jac), _1, _2),
-                                                alpha,
-                                                std::bind(static_cast<normalAccel_func2>(&Jacobian::normalAcceleration),
-                                                          std::ref(jac), _1, _2, std::ref(mbc.bodyAccB)))
-                            .norm(),
-                        TOL);
+      EXPECT_NEAR(testMatrixAgainstVector(mb, mbc, jac, std::bind(&Jacobian::jacobianDot, std::ref(jac), _1, _2), alpha,
+                                          std::bind(static_cast<normalAccel_func2>(&Jacobian::normalAcceleration),
+                                                    std::ref(jac), _1, _2, std::ref(mbc.bodyAccB)))
+                      .norm(),
+                  0.0, TOL);
 
-      BOOST_CHECK_SMALL(
-          testMatrixAgainstVector(mb, mbc, jac, std::bind(&Jacobian::bodyJacobianDot, std::ref(jac), _1, _2), alpha,
-                                  std::bind(static_cast<normalAccel_func2>(&Jacobian::bodyNormalAcceleration),
-                                            std::ref(jac), _1, _2, std::ref(mbc.bodyAccB)))
-              .norm(),
-          TOL);
+      EXPECT_NEAR(testMatrixAgainstVector(mb, mbc, jac, std::bind(&Jacobian::bodyJacobianDot, std::ref(jac), _1, _2),
+                                          alpha,
+                                          std::bind(static_cast<normalAccel_func2>(&Jacobian::bodyNormalAcceleration),
+                                                    std::ref(jac), _1, _2, std::ref(mbc.bodyAccB)))
+                      .norm(),
+                  0.0, TOL);
     }
   }
 }

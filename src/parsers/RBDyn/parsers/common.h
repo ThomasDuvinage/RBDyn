@@ -12,10 +12,9 @@
 
 #include <SpaceVecAlg/SpaceVecAlg>
 
-#include <boost/variant.hpp>
-
 #include <Eigen/Core>
 #include <string>
+#include <variant>
 
 namespace rbd
 {
@@ -89,7 +88,7 @@ public:
     UNKNOWN
   };
   Type type;
-  using Data = boost::variant<Box, Cylinder, Mesh, Sphere, Superellipsoid>;
+  using Data = std::variant<Box, Cylinder, Mesh, Sphere, Superellipsoid>;
   Data data;
 
   Geometry() : type(UNKNOWN) {}
@@ -123,7 +122,7 @@ struct RBDYN_PARSERS_DLLAPI Material
     TEXTURE
   };
   Type type;
-  using Data = boost::variant<Color, Texture>;
+  using Data = std::variant<Color, Texture>;
   Data data;
 
   Material() : type(Type::NONE) {}

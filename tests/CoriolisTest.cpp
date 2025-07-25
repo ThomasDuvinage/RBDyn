@@ -2,16 +2,14 @@
  * Copyright 2012-2019 CNRS-UM LIRMM, CNRS-AIST JRL
  */
 
-#include "Tree30Dof.h"
-
-#define BOOST_TEST_MODULE Coriolis
 #include <RBDyn/Coriolis.h>
 #include <RBDyn/FD.h>
 #include <RBDyn/FK.h>
 #include <RBDyn/FV.h>
 #include <RBDyn/NumericalIntegration.h>
 
-#include <boost/test/unit_test.hpp>
+#include "Tree30Dof.h"
+#include <gtest/gtest.h>
 
 void setRandomFreeFlyer(rbd::MultiBodyConfig & mbc)
 {
@@ -24,7 +22,7 @@ void setRandomFreeFlyer(rbd::MultiBodyConfig & mbc)
   mbc.q[0][3] = qd.z();
 }
 
-BOOST_AUTO_TEST_CASE(CoriolisTest)
+TEST(CoriolisTest, CoriolisTest)
 {
   std::srand(133757348);
 
@@ -66,7 +64,7 @@ BOOST_AUTO_TEST_CASE(CoriolisTest)
     fd.computeC(mb, mbc);
     Eigen::MatrixXd N = fd.C();
 
-    BOOST_CHECK_SMALL((C * qd + gravity - N).norm(), TOL);
+    EXPECT_NEAR((C * qd + gravity - N).norm(), 0.0, TOL);
 
     fd.computeH(mb, mbc);
     Eigen::MatrixXd m1 = fd.H();
@@ -85,6 +83,12 @@ BOOST_AUTO_TEST_CASE(CoriolisTest)
 
     // Because we are using finite differences, the error is larger
     // on this test
-    BOOST_CHECK_SMALL(diff.norm(), BIGTOL);
+    EXPECT_NEAR(diff.norm(), 0.0, BIGTOL);
   }
+}
+
+int main(int argc, char ** argv)
+{
+  testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }

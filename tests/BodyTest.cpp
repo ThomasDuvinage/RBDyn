@@ -6,9 +6,8 @@
 // std
 #include <iostream>
 
-// boost
-#define BOOST_TEST_MODULE BodyTest
-#include <boost/test/unit_test.hpp>
+// google test
+#include <gtest/gtest.h>
 
 // SpaceVecAlg
 #include <SpaceVecAlg/SpaceVecAlg>
@@ -16,7 +15,7 @@
 // RBDyn
 #include "RBDyn/Body.h"
 
-BOOST_AUTO_TEST_CASE(BodyTest)
+TEST(BodyTest, BodyTest)
 {
   using namespace Eigen;
   using namespace sva;
@@ -32,24 +31,30 @@ BOOST_AUTO_TEST_CASE(BodyTest)
   // Test first constructor
   Body b1(rbi, "b1");
 
-  BOOST_CHECK_EQUAL(b1.name(), "b1");
-  BOOST_CHECK_EQUAL(b1.inertia().mass(), rbi.mass());
-  BOOST_CHECK_EQUAL(b1.inertia().momentum(), rbi.momentum());
-  BOOST_CHECK_EQUAL(b1.inertia().inertia(), rbi.inertia());
+  EXPECT_EQ(b1.name(), "b1");
+  EXPECT_EQ(b1.inertia().mass(), rbi.mass());
+  EXPECT_EQ(b1.inertia().momentum(), rbi.momentum());
+  EXPECT_EQ(b1.inertia().inertia(), rbi.inertia());
 
   // Test second constructor
   Body b2(mass, Vector3d::UnitX(), I, "b2");
 
-  BOOST_CHECK_EQUAL(b2.name(), "b2");
-  BOOST_CHECK_EQUAL(b2.inertia().mass(), mass);
-  BOOST_CHECK_EQUAL(b2.inertia().momentum(), mass * Vector3d::UnitX());
-  BOOST_CHECK_EQUAL(b2.inertia().inertia(), I);
+  EXPECT_EQ(b2.name(), "b2");
+  EXPECT_EQ(b2.inertia().mass(), mass);
+  EXPECT_EQ(b2.inertia().momentum(), mass * Vector3d::UnitX());
+  EXPECT_EQ(b2.inertia().inertia(), I);
 
   // Test operator==
-  BOOST_CHECK_EQUAL(b1, b1);
-  BOOST_CHECK_NE(b1, b2);
+  EXPECT_EQ(b1, b1);
+  EXPECT_NE(b1, b2);
 
   // Test operator!=
-  BOOST_CHECK(!(b1 != b1));
-  BOOST_CHECK(b1 != b2);
+  EXPECT_TRUE(!(b1 != b1));
+  EXPECT_TRUE(b1 != b2);
+}
+
+int main(int argc, char ** argv)
+{
+  testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }

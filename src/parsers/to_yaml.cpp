@@ -129,14 +129,14 @@ std::string to_yaml(const ParserResult & res)
           doc << Key << "name" << Value << ("material_" + link.name() + "_" + std::to_string(i));
           if(material.type == Material::Type::COLOR)
           {
-            const auto & c = boost::get<Material::Color>(material.data);
+            const auto & c = std::get<Material::Color>(material.data);
             doc << Key << "color" << Value << BeginMap;
             doc << Key << "rgba" << Value << Flow << BeginSeq << c.r << c.g << c.b << c.a << EndSeq;
             doc << EndMap;
           }
           else if(material.type == Material::Type::TEXTURE)
           {
-            const auto & texture = boost::get<Material::Texture>(material.data);
+            const auto & texture = std::get<Material::Texture>(material.data);
             doc << Key << "texture" << Value << BeginMap;
             doc << Key << "filename" << Value << prefix_path(texture.filename);
             doc << EndMap;
@@ -151,7 +151,7 @@ std::string to_yaml(const ParserResult & res)
           case Geometry::Type::BOX:
           {
             doc << Key << "box" << BeginMap;
-            const auto box = boost::get<Geometry::Box>(visual.geometry.data);
+            const auto box = std::get<Geometry::Box>(visual.geometry.data);
             set_vec3d("size", box.size);
             doc << EndMap;
           }
@@ -159,7 +159,7 @@ std::string to_yaml(const ParserResult & res)
           case Geometry::Type::CYLINDER:
           {
             doc << Key << "cylinder" << BeginMap;
-            const auto cylinder = boost::get<Geometry::Cylinder>(visual.geometry.data);
+            const auto cylinder = std::get<Geometry::Cylinder>(visual.geometry.data);
             doc << Key << "radius" << Value << cylinder.radius;
             doc << Key << "length" << Value << cylinder.length;
             doc << EndMap;
@@ -168,7 +168,7 @@ std::string to_yaml(const ParserResult & res)
           case Geometry::Type::MESH:
           {
             doc << Key << "mesh" << BeginMap;
-            const auto mesh = boost::get<Geometry::Mesh>(visual.geometry.data);
+            const auto mesh = std::get<Geometry::Mesh>(visual.geometry.data);
             doc << Key << "filename" << Value << prefix_path(mesh.filename);
             doc << Key << "scale" << BeginSeq << mesh.scaleV.x() << mesh.scaleV.y() << mesh.scaleV.z() << EndSeq;
             doc << EndMap;
@@ -177,7 +177,7 @@ std::string to_yaml(const ParserResult & res)
           case Geometry::Type::SPHERE:
           {
             doc << Key << "sphere" << BeginMap;
-            const auto sphere = boost::get<Geometry::Sphere>(visual.geometry.data);
+            const auto sphere = std::get<Geometry::Sphere>(visual.geometry.data);
             doc << Key << "radius" << Value << sphere.radius;
             doc << EndMap;
           }
@@ -185,7 +185,7 @@ std::string to_yaml(const ParserResult & res)
           case Geometry::Type::SUPERELLIPSOID:
           {
             doc << Key << "superellipsoid" << BeginMap;
-            const auto superellipsoid = boost::get<Geometry::Superellipsoid>(visual.geometry.data);
+            const auto superellipsoid = std::get<Geometry::Superellipsoid>(visual.geometry.data);
             set_vec3d("size", superellipsoid.size);
             doc << Key << "epsilon1" << Value << superellipsoid.epsilon1;
             doc << Key << "epsilon2" << Value << superellipsoid.epsilon2;

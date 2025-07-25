@@ -4,24 +4,17 @@
 
 #pragma once
 
-#include <boost/filesystem/path.hpp>
-#include <boost/make_shared.hpp>
-#include <boost/test/output_test_stream.hpp>
-#include <boost/test/test_case_template.hpp>
-#include <boost/test/unit_test.hpp>
-
-#include <iostream>
+#include <filesystem>
+#include <fstream>
+#include <memory>
+#include <sstream>
+#include <stdexcept>
+#include <string>
 
 #ifdef TESTS_DATA_DIR
-// See: http://stackoverflow.com/q/26299144/1043187
-#  ifdef __NVCC__
-#    include <boost/preprocessor/stringize.hpp>
-const static boost::filesystem::path tests_data_dir(BOOST_PP_STRINGIZE(TESTS_DATA_DIR));
-#  else
-const static boost::filesystem::path tests_data_dir(TESTS_DATA_DIR);
-#  endif //! __NVCC__
+const static std::filesystem::path tests_data_dir(TESTS_DATA_DIR);
 #else
-const static boost::filesystem::path tests_data_dir;
+const static std::filesystem::path tests_data_dir;
 #endif //! TESTS_DATA_DIR
 
 namespace rbd
@@ -33,15 +26,18 @@ struct TestSuiteConfiguration
   ~TestSuiteConfiguration() {}
 };
 
-boost::shared_ptr<boost::test_tools::output_test_stream> retrievePattern(const std::string & testName)
+std::string retrievePattern(const std::string & testName)
 {
-  std::string patternFilename = TESTS_DATA_DIR;
-  patternFilename += "/";
-  patternFilename += testName;
-  patternFilename += ".stdout";
+  std::string patternFilename = std::string(TESTS_DATA_DIR) + "/" + testName + ".stdout";
 
-  boost::shared_ptr<boost::test_tools::output_test_stream> output =
-      boost::make_shared<boost::test_tools::output_test_stream>(patternFilename, true);
-  return output;
+  std::ifstream file(patternFilename);
+  if(!file)
+  {
+    throw std::runtime_error("Could not open pattern file: " + patternFilename);
+  }
+
+  std::ostringstream buffer;
+  buffer << file.rdbuf();
+  return buffer.str();
 }
 } // end of namespace rbd

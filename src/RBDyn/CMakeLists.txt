@@ -60,7 +60,7 @@ else()
 endif()
 set_target_properties(RBDyn PROPERTIES SOVERSION ${PROJECT_VERSION_MAJOR}
                                        VERSION ${PROJECT_VERSION})
-set_target_properties(RBDyn PROPERTIES CXX_STANDARD 11)
+set_target_properties(RBDyn PROPERTIES CXX_STANDARD 17)
 
 install(
   TARGETS RBDyn

@@ -6,9 +6,9 @@
 // std
 #include <iostream>
 
-// boost
-#define BOOST_TEST_MODULE JointTest
-#include <boost/test/unit_test.hpp>
+// google test
+#include "CollectionTest.h"
+#include <gtest/gtest.h>
 
 // SpaceVecAlg
 #include <SpaceVecAlg/SpaceVecAlg>
@@ -45,23 +45,25 @@ void testRevolute(rbd::Joint::OldType type, const Eigen::Vector3d & axis, bool f
   PTransformd rot90(AngleAxisd(-rbd::PI / 2., dir * axis).matrix());
 
   // test accessor
-  BOOST_CHECK_EQUAL(j.type(), Joint::Rev);
-  BOOST_CHECK_EQUAL(j.params(), 1);
-  BOOST_CHECK_EQUAL(j.dof(), 1);
-  BOOST_CHECK_EQUAL(j.name(), "rev");
-  BOOST_CHECK_EQUAL(j.motionSubspace(), S);
+  EXPECT_EQ(j.type(), Joint::Rev);
+  EXPECT_EQ(j.params(), 1);
+  EXPECT_EQ(j.dof(), 1);
+  EXPECT_EQ(j.name(), "rev");
+  EXPECT_EQ(j.motionSubspace(), S);
 
   // test zero
   std::vector<double> zeroP = {0.};
   std::vector<double> zeroD = {0.};
   std::vector<double> zp = j.zeroParam();
   std::vector<double> zd = j.zeroDof();
-  BOOST_CHECK_EQUAL_COLLECTIONS(zp.begin(), zp.end(), zeroP.begin(), zeroP.end());
-  BOOST_CHECK_EQUAL_COLLECTIONS(zd.begin(), zd.end(), zeroD.begin(), zeroD.end());
 
-  BOOST_CHECK_EQUAL(j.pose<double>({rbd::PI / 2.}), rot90);
+  EXPECT_TRUE(CheckEqualCollections(zp.begin(), zp.end(), zeroP.begin()));
 
-  BOOST_CHECK_EQUAL(j.motion({2.}).vector(), (2. * motion).vector());
+  EXPECT_TRUE(CheckEqualCollections(zd.begin(), zd.end(), zeroD.begin()));
+
+  EXPECT_EQ(j.pose<double>({rbd::PI / 2.}), rot90);
+
+  EXPECT_EQ(j.motion({2.}).vector(), (2. * motion).vector());
 }
 
 void testPrismatic(rbd::Joint::OldType type, const Eigen::Vector3d & axis, bool forward)
@@ -84,28 +86,29 @@ void testPrismatic(rbd::Joint::OldType type, const Eigen::Vector3d & axis, bool 
   PTransformd trans2(Vector3d(dir * axis * 2.));
 
   // test accessor
-  BOOST_CHECK_EQUAL(j.type(), Joint::Prism);
-  BOOST_CHECK_EQUAL(j.params(), 1);
-  BOOST_CHECK_EQUAL(j.dof(), 1);
-  BOOST_CHECK_EQUAL(j.name(), "prism");
-  BOOST_CHECK_EQUAL(j.motionSubspace(), S);
+  EXPECT_EQ(j.type(), Joint::Prism);
+  EXPECT_EQ(j.params(), 1);
+  EXPECT_EQ(j.dof(), 1);
+  EXPECT_EQ(j.name(), "prism");
+  EXPECT_EQ(j.motionSubspace(), S);
 
   // test zero
   std::vector<double> zeroP = {0.};
   std::vector<double> zeroD = {0.};
   std::vector<double> zp = j.zeroParam();
   std::vector<double> zd = j.zeroDof();
-  BOOST_CHECK_EQUAL_COLLECTIONS(zp.begin(), zp.end(), zeroP.begin(), zeroP.end());
-  BOOST_CHECK_EQUAL_COLLECTIONS(zd.begin(), zd.end(), zeroD.begin(), zeroD.end());
+  EXPECT_TRUE(CheckEqualCollections(zp.begin(), zp.end(), zeroP.begin()));
+
+  EXPECT_TRUE(CheckEqualCollections(zd.begin(), zd.end(), zeroD.begin()));
 
   // test motion
-  BOOST_CHECK_EQUAL(j.pose<double>({2.}), trans2);
+  EXPECT_EQ(j.pose<double>({2.}), trans2);
 
   // test motion
-  BOOST_CHECK_EQUAL(j.motion({2.}).vector(), (2. * motion).vector());
+  EXPECT_EQ(j.motion({2.}).vector(), (2. * motion).vector());
 }
 
-BOOST_AUTO_TEST_CASE(JointTest)
+TEST(FILENAME, JointTest)
 {
   using namespace rbd;
 
@@ -113,40 +116,40 @@ BOOST_AUTO_TEST_CASE(JointTest)
   Joint j1(Joint::RevX, true, "j1");
   Joint j2(Joint::RevX, false, "j2");
 
-  BOOST_CHECK_EQUAL(j1, j1);
-  BOOST_CHECK_NE(j1, j2);
+  EXPECT_EQ(j1, j1);
+  EXPECT_NE(j1, j2);
 
   // Test operator!=
-  BOOST_CHECK(!(j1 != j1));
-  BOOST_CHECK(j1 != j2);
+  EXPECT_TRUE(!(j1 != j1));
+  EXPECT_TRUE(j1 != j2);
 
   // Test direction
-  BOOST_CHECK_EQUAL(j1.direction(), 1.);
-  BOOST_CHECK_EQUAL(j2.direction(), -1.);
+  EXPECT_EQ(j1.direction(), 1.);
+  EXPECT_EQ(j2.direction(), -1.);
 
   // Test forward (getter)
-  BOOST_CHECK_EQUAL(j1.forward(), true);
-  BOOST_CHECK_EQUAL(j2.forward(), false);
+  EXPECT_EQ(j1.forward(), true);
+  EXPECT_EQ(j2.forward(), false);
 
   // Test forward (setter)
   j1.forward(false);
-  BOOST_CHECK_EQUAL(j1.direction(), -1.);
-  BOOST_CHECK_EQUAL(j1.forward(), false);
+  EXPECT_EQ(j1.direction(), -1.);
+  EXPECT_EQ(j1.forward(), false);
 
   // sPose
-  BOOST_CHECK_THROW(j1.sPose({0., 0.}), std::domain_error);
-  BOOST_CHECK_THROW(j1.sPose({}), std::domain_error);
-  BOOST_CHECK_NO_THROW(j1.sPose({0.}));
-  BOOST_CHECK_EQUAL(j1.sPose({0.}), j1.pose<double>({0.}));
+  EXPECT_THROW(j1.sPose({0., 0.}), std::domain_error);
+  EXPECT_THROW(j1.sPose({}), std::domain_error);
+  EXPECT_NO_THROW(j1.sPose({0.}));
+  EXPECT_EQ(j1.sPose({0.}), j1.pose<double>({0.}));
 
   // sMotion
-  BOOST_CHECK_THROW(j1.sMotion({0., 0.}), std::domain_error);
-  BOOST_CHECK_THROW(j1.sMotion({}), std::domain_error);
-  BOOST_CHECK_NO_THROW(j1.sMotion({0.}));
-  BOOST_CHECK_EQUAL(j1.sMotion({0.}), j1.motion({0.}));
+  EXPECT_THROW(j1.sMotion({0., 0.}), std::domain_error);
+  EXPECT_THROW(j1.sMotion({}), std::domain_error);
+  EXPECT_NO_THROW(j1.sMotion({0.}));
+  EXPECT_EQ(j1.sMotion({0.}), j1.motion({0.}));
 }
 
-BOOST_AUTO_TEST_CASE(RevXTest)
+TEST(FILENAME, RevXTest)
 {
   using namespace Eigen;
   using namespace rbd;
@@ -154,7 +157,7 @@ BOOST_AUTO_TEST_CASE(RevXTest)
   testRevolute(Joint::RevX, Vector3d::UnitX(), false);
 }
 
-BOOST_AUTO_TEST_CASE(RevYTest)
+TEST(FILENAME, RevYTest)
 {
   using namespace Eigen;
   using namespace rbd;
@@ -162,7 +165,7 @@ BOOST_AUTO_TEST_CASE(RevYTest)
   testRevolute(Joint::RevY, Vector3d::UnitY(), false);
 }
 
-BOOST_AUTO_TEST_CASE(RevZTest)
+TEST(FILENAME, RevZTest)
 {
   using namespace Eigen;
   using namespace rbd;
@@ -170,7 +173,7 @@ BOOST_AUTO_TEST_CASE(RevZTest)
   testRevolute(Joint::RevZ, Vector3d::UnitZ(), false);
 }
 
-BOOST_AUTO_TEST_CASE(PrismXTest)
+TEST(FILENAME, PrismXTest)
 {
   using namespace Eigen;
   using namespace rbd;
@@ -178,7 +181,7 @@ BOOST_AUTO_TEST_CASE(PrismXTest)
   testPrismatic(Joint::PrismX, Vector3d::UnitX(), false);
 }
 
-BOOST_AUTO_TEST_CASE(PrismYTest)
+TEST(FILENAME, PrismYTest)
 {
   using namespace Eigen;
   using namespace rbd;
@@ -186,7 +189,7 @@ BOOST_AUTO_TEST_CASE(PrismYTest)
   testPrismatic(Joint::PrismY, Vector3d::UnitY(), false);
 }
 
-BOOST_AUTO_TEST_CASE(PrismZTest)
+TEST(FILENAME, PrismZTest)
 {
   using namespace Eigen;
   using namespace rbd;
@@ -194,7 +197,7 @@ BOOST_AUTO_TEST_CASE(PrismZTest)
   testPrismatic(Joint::PrismZ, Vector3d::UnitZ(), false);
 }
 
-BOOST_AUTO_TEST_CASE(SphericalTest)
+TEST(FILENAME, SphericalTest)
 {
   using namespace Eigen;
   using namespace sva;
@@ -224,42 +227,43 @@ BOOST_AUTO_TEST_CASE(SphericalTest)
   for(int i = 0; i < 3; ++i) alpha.push_back(alphaE(i));
 
   // test accessor
-  BOOST_CHECK_EQUAL(j.type(), Joint::Spherical);
-  BOOST_CHECK_EQUAL(j.params(), 4);
-  BOOST_CHECK_EQUAL(j.dof(), 3);
-  BOOST_CHECK_EQUAL(j.name(), "sphere");
-  BOOST_CHECK_EQUAL(j.motionSubspace(), S);
+  EXPECT_EQ(j.type(), Joint::Spherical);
+  EXPECT_EQ(j.params(), 4);
+  EXPECT_EQ(j.dof(), 3);
+  EXPECT_EQ(j.name(), "sphere");
+  EXPECT_EQ(j.motionSubspace(), S);
 
   // test zero
   std::vector<double> zeroP = {1., 0., 0., 0.};
   std::vector<double> zeroD = {0., 0., 0.};
   std::vector<double> zp = j.zeroParam();
   std::vector<double> zd = j.zeroDof();
-  BOOST_CHECK_EQUAL_COLLECTIONS(zp.begin(), zp.end(), zeroP.begin(), zeroP.end());
-  BOOST_CHECK_EQUAL_COLLECTIONS(zd.begin(), zd.end(), zeroD.begin(), zeroD.end());
+  EXPECT_TRUE(CheckEqualCollections(zp.begin(), zp.end(), zeroP.begin()));
+
+  EXPECT_TRUE(CheckEqualCollections(zd.begin(), zd.end(), zeroD.begin()));
 
   // test pose
 #ifdef __i386__
-  BOOST_CHECK_SMALL((j.pose(q).matrix() - rot.matrix()).array().abs().sum(), TOL);
+  EXPECT_NEAR((j.pose(q).matrix() - rot.matrix()).array().abs().sum(), 0.0, TOL);
 #else
-  BOOST_CHECK_EQUAL(j.pose(q), rot);
+  EXPECT_EQ(j.pose(q), rot);
 #endif
 
   // test motion
-  BOOST_CHECK_EQUAL(j.motion(alpha).vector(), S * alphaE);
+  EXPECT_EQ(j.motion(alpha).vector(), S * alphaE);
 
   // test inverse polarity
   j.forward(false);
-  BOOST_CHECK_EQUAL(j.motionSubspace(), -S);
+  EXPECT_EQ(j.motionSubspace(), -S);
 #ifdef __i386__
-  BOOST_CHECK_SMALL((j.pose(q).matrix() - rot.inv().matrix()).array().abs().sum(), TOL);
+  EXPECT_NEAR((j.pose(q).matrix() - rot.inv().matrix()).array().abs().sum(), 0.0, TOL);
 #else
-  BOOST_CHECK_EQUAL(j.pose(q), rot.inv());
+  EXPECT_EQ(j.pose(q), rot.inv());
 #endif
-  BOOST_CHECK_EQUAL(j.motion(alpha).vector(), -S * alphaE);
+  EXPECT_EQ(j.motion(alpha).vector(), -S * alphaE);
 }
 
-BOOST_AUTO_TEST_CASE(PlanarTest)
+TEST(FILENAME, PlanarTest)
 {
   using namespace Eigen;
   using namespace sva;
@@ -286,34 +290,35 @@ BOOST_AUTO_TEST_CASE(PlanarTest)
   for(int i = 0; i < 3; ++i) alpha.push_back(alphaE(i));
 
   // test accessor
-  BOOST_CHECK_EQUAL(j.type(), Joint::Planar);
-  BOOST_CHECK_EQUAL(j.params(), 3);
-  BOOST_CHECK_EQUAL(j.dof(), 3);
-  BOOST_CHECK_EQUAL(j.name(), "planar");
-  BOOST_CHECK_EQUAL(j.motionSubspace(), S);
+  EXPECT_EQ(j.type(), Joint::Planar);
+  EXPECT_EQ(j.params(), 3);
+  EXPECT_EQ(j.dof(), 3);
+  EXPECT_EQ(j.name(), "planar");
+  EXPECT_EQ(j.motionSubspace(), S);
 
   // test zero
   std::vector<double> zeroP = {0., 0., 0.};
   std::vector<double> zeroD = {0., 0., 0.};
   std::vector<double> zp = j.zeroParam();
   std::vector<double> zd = j.zeroDof();
-  BOOST_CHECK_EQUAL_COLLECTIONS(zp.begin(), zp.end(), zeroP.begin(), zeroP.end());
-  BOOST_CHECK_EQUAL_COLLECTIONS(zd.begin(), zd.end(), zeroD.begin(), zeroD.end());
+  EXPECT_TRUE(CheckEqualCollections(zp.begin(), zp.end(), zeroP.begin()));
+
+  EXPECT_TRUE(CheckEqualCollections(zd.begin(), zd.end(), zeroD.begin()));
 
   // test pose
-  BOOST_CHECK_EQUAL(j.pose(q), trans);
+  EXPECT_EQ(j.pose(q), trans);
 
   // test motion
-  BOOST_CHECK_EQUAL(j.motion(alpha).vector(), S * alphaE);
+  EXPECT_EQ(j.motion(alpha).vector(), S * alphaE);
 
   // test inverse polarity
   j.forward(false);
-  BOOST_CHECK_EQUAL(j.motionSubspace(), -S);
-  BOOST_CHECK_EQUAL(j.pose(q), trans.inv());
-  BOOST_CHECK_EQUAL(j.motion(alpha).vector(), -S * alphaE);
+  EXPECT_EQ(j.motionSubspace(), -S);
+  EXPECT_EQ(j.pose(q), trans.inv());
+  EXPECT_EQ(j.motion(alpha).vector(), -S * alphaE);
 }
 
-BOOST_AUTO_TEST_CASE(CylindricalTest)
+TEST(FILENAME, CylindricalTest)
 {
   using namespace Eigen;
   using namespace sva;
@@ -341,34 +346,35 @@ BOOST_AUTO_TEST_CASE(CylindricalTest)
   for(int i = 0; i < 2; ++i) alpha.push_back(alphaE(i));
 
   // test accessor
-  BOOST_CHECK_EQUAL(j.type(), Joint::Cylindrical);
-  BOOST_CHECK_EQUAL(j.params(), 2);
-  BOOST_CHECK_EQUAL(j.dof(), 2);
-  BOOST_CHECK_EQUAL(j.name(), "cylindrical");
-  BOOST_CHECK_EQUAL(j.motionSubspace(), S);
+  EXPECT_EQ(j.type(), Joint::Cylindrical);
+  EXPECT_EQ(j.params(), 2);
+  EXPECT_EQ(j.dof(), 2);
+  EXPECT_EQ(j.name(), "cylindrical");
+  EXPECT_EQ(j.motionSubspace(), S);
 
   // test zero
   std::vector<double> zeroP = {0., 0.};
   std::vector<double> zeroD = {0., 0.};
   std::vector<double> zp = j.zeroParam();
   std::vector<double> zd = j.zeroDof();
-  BOOST_CHECK_EQUAL_COLLECTIONS(zp.begin(), zp.end(), zeroP.begin(), zeroP.end());
-  BOOST_CHECK_EQUAL_COLLECTIONS(zd.begin(), zd.end(), zeroD.begin(), zeroD.end());
+  EXPECT_TRUE(CheckEqualCollections(zp.begin(), zp.end(), zeroP.begin()));
+
+  EXPECT_TRUE(CheckEqualCollections(zd.begin(), zd.end(), zeroD.begin()));
 
   // test pose
-  BOOST_CHECK_EQUAL(j.pose(q), X);
+  EXPECT_EQ(j.pose(q), X);
 
   // test motion
-  BOOST_CHECK_EQUAL(j.motion(alpha).vector(), S * alphaE);
+  EXPECT_EQ(j.motion(alpha).vector(), S * alphaE);
 
   // test inverse polarity
   j.forward(false);
-  BOOST_CHECK_EQUAL(j.motionSubspace(), -S);
-  BOOST_CHECK_SMALL((j.pose(q).matrix() - X.inv().matrix()).norm(), TOL);
-  BOOST_CHECK_EQUAL(j.motion(alpha).vector(), -S * alphaE);
+  EXPECT_EQ(j.motionSubspace(), -S);
+  EXPECT_NEAR((j.pose(q).matrix() - X.inv().matrix()).norm(), 0.0, TOL);
+  EXPECT_EQ(j.motion(alpha).vector(), -S * alphaE);
 }
 
-BOOST_AUTO_TEST_CASE(FreeTest)
+TEST(FILENAME, FreeTest)
 {
   using namespace Eigen;
   using namespace sva;
@@ -398,34 +404,35 @@ BOOST_AUTO_TEST_CASE(FreeTest)
   for(int i = 0; i < 6; ++i) alpha.push_back(alphaE(i));
 
   // test accessor
-  BOOST_CHECK_EQUAL(j.type(), Joint::Free);
-  BOOST_CHECK_EQUAL(j.params(), 7);
-  BOOST_CHECK_EQUAL(j.dof(), 6);
-  BOOST_CHECK_EQUAL(j.name(), "free");
-  BOOST_CHECK_EQUAL(j.motionSubspace(), S);
+  EXPECT_EQ(j.type(), Joint::Free);
+  EXPECT_EQ(j.params(), 7);
+  EXPECT_EQ(j.dof(), 6);
+  EXPECT_EQ(j.name(), "free");
+  EXPECT_EQ(j.motionSubspace(), S);
 
   // test zero
   std::vector<double> zeroP = {1., 0., 0., 0., 0., 0., 0.};
   std::vector<double> zeroD = {0., 0., 0., 0., 0., 0.};
   std::vector<double> zp = j.zeroParam();
   std::vector<double> zd = j.zeroDof();
-  BOOST_CHECK_EQUAL_COLLECTIONS(zp.begin(), zp.end(), zeroP.begin(), zeroP.end());
-  BOOST_CHECK_EQUAL_COLLECTIONS(zd.begin(), zd.end(), zeroD.begin(), zeroD.end());
+  EXPECT_TRUE(CheckEqualCollections(zp.begin(), zp.end(), zeroP.begin()));
+
+  EXPECT_TRUE(CheckEqualCollections(zd.begin(), zd.end(), zeroD.begin()));
 
   // test pose
-  BOOST_CHECK_SMALL((j.pose(q).matrix() - rot.matrix()).norm(), TOL);
+  EXPECT_NEAR((j.pose(q).matrix() - rot.matrix()).norm(), 0.0, TOL);
 
   // test motion
-  BOOST_CHECK_EQUAL(j.motion(alpha).vector(), S * alphaE);
+  EXPECT_EQ(j.motion(alpha).vector(), S * alphaE);
 
   // test inverse polarity
   j.forward(false);
-  BOOST_CHECK_EQUAL(j.motionSubspace(), -S);
-  BOOST_CHECK_SMALL((j.pose(q).matrix() - rot.inv().matrix()).norm(), TOL);
-  BOOST_CHECK_EQUAL(j.motion(alpha).vector(), -S * alphaE);
+  EXPECT_EQ(j.motionSubspace(), -S);
+  EXPECT_NEAR((j.pose(q).matrix() - rot.inv().matrix()).norm(), 0.0, TOL);
+  EXPECT_EQ(j.motion(alpha).vector(), -S * alphaE);
 }
 
-BOOST_AUTO_TEST_CASE(FixedTest)
+TEST(FILENAME, FixedTest)
 {
   using namespace Eigen;
   using namespace sva;
@@ -437,15 +444,15 @@ BOOST_AUTO_TEST_CASE(FixedTest)
   MatrixXd S = MatrixXd::Zero(6, 0);
 
   // test accessor
-  BOOST_CHECK_EQUAL(j.type(), Joint::Fixed);
-  BOOST_CHECK_EQUAL(j.params(), 0);
-  BOOST_CHECK_EQUAL(j.dof(), 0);
-  BOOST_CHECK_EQUAL(j.name(), "fixed");
-  BOOST_CHECK_EQUAL(j.motionSubspace(), S);
+  EXPECT_EQ(j.type(), Joint::Fixed);
+  EXPECT_EQ(j.params(), 0);
+  EXPECT_EQ(j.dof(), 0);
+  EXPECT_EQ(j.name(), "fixed");
+  EXPECT_EQ(j.motionSubspace(), S);
 
   // test pose
-  BOOST_CHECK_EQUAL(j.pose<double>({}), PTransformd::Identity());
+  EXPECT_EQ(j.pose<double>({}), PTransformd::Identity());
 
   // test motion
-  BOOST_CHECK_EQUAL(j.motion({}).vector(), Vector6d::Zero());
+  EXPECT_EQ(j.motion({}).vector(), Vector6d::Zero());
 }

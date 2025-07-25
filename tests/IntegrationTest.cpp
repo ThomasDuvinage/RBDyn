@@ -6,9 +6,8 @@
 // std
 #include <vector>
 
-// boost
-#define BOOST_TEST_MODULE JointTest
-#include <boost/test/unit_test.hpp>
+// google test
+#include <gtest/gtest.h>
 
 // SpaceVecAlg
 #include <SpaceVecAlg/SpaceVecAlg>
@@ -230,7 +229,7 @@ void testConstantSpeedIntegration(Joint::Type type,
 
   for(size_t i = 0; i < q.size(); ++i)
   {
-    BOOST_CHECK_SMALL(q_expected2[i] - mbc.q[1][i], 1e-9);
+    EXPECT_NEAR(q_expected2[i] - mbc.q[1][i], 0.0, 1e-9);
   }
 }
 
@@ -271,7 +270,7 @@ void testIntegrationConsistency(Joint::Type type,
 
   for(size_t i = 0; i < q.size(); ++i)
   {
-    BOOST_CHECK_SMALL(mbc0.q[1][i] - mbc.q[1][i], 1e-6);
+    EXPECT_NEAR(mbc0.q[1][i] - mbc.q[1][i], 0.0, 1e-6);
   }
 }
 
@@ -314,7 +313,7 @@ void testConstantAccelerationIntegration(Joint::Type type,
 
   for(size_t i = 0; i < q.size(); ++i)
   {
-    BOOST_CHECK_SMALL(qc[i] - mbc.q[1][i], 5e-5);
+    EXPECT_NEAR(qc[i] - mbc.q[1][i], 0.0, 5e-5);
   }
 }
 
@@ -366,10 +365,10 @@ void testConsistencyWithJacobian(Joint::Type type, const std::vector<double> & q
   // Compute the position of the end effector at this configuration
   Vector3d pe = mbc.bodyPosW[2].translation();
 
-  BOOST_CHECK_SMALL((pi - pe).norm(), 1e-8);
+  EXPECT_NEAR((pi - pe).norm(), 0.0, 1e-8);
 }
 
-BOOST_AUTO_TEST_CASE(ConstantSpeedJointIntegrationTest)
+TEST(IntegrationTest, ConstantSpeedJointIntegrationTest)
 {
   for(auto step : dt)
   {
@@ -385,7 +384,7 @@ BOOST_AUTO_TEST_CASE(ConstantSpeedJointIntegrationTest)
   }
 }
 
-BOOST_AUTO_TEST_CASE(IntegrationConsistencyTest)
+TEST(IntegrationTest, IntegrationConsistencyTest)
 {
   for(auto step : dt)
   {
@@ -401,7 +400,7 @@ BOOST_AUTO_TEST_CASE(IntegrationConsistencyTest)
   }
 }
 
-BOOST_AUTO_TEST_CASE(ConstantAccelerationJointIntegrationTest)
+TEST(IntegrationTest, ConstantAccelerationJointIntegrationTest)
 {
   for(auto step : dt)
   {
@@ -417,7 +416,7 @@ BOOST_AUTO_TEST_CASE(ConstantAccelerationJointIntegrationTest)
   }
 }
 
-BOOST_AUTO_TEST_CASE(JacobianConsistencyTest)
+TEST(IntegrationTest, JacobianConsistencyTest)
 {
   for(auto type : types)
   {
@@ -428,4 +427,10 @@ BOOST_AUTO_TEST_CASE(JacobianConsistencyTest)
       testConsistencyWithJacobian(type, q, v);
     }
   }
+}
+
+int main(int argc, char ** argv)
+{
+  testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }

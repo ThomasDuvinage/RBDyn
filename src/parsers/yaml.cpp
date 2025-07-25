@@ -15,7 +15,6 @@
 #  include <cxxabi.h>
 #endif
 
-/** value from boost/math/constants */
 #ifndef M_PI
 #  define M_PI 3.141592653589793238462643383279502884e+00
 #endif
@@ -501,7 +500,11 @@ void RBDynFromYAML::parseLink(const YAML::Node & link)
         std::cout << "\t\tname: " << visual.name << '\n';
         std::cout << "\t\torigin: " << visual.origin.translation().transpose() << ", "
                   << visual.origin.rotation().eulerAngles(0, 1, 2).transpose() << '\n';
-        std::cout << "\t\ttype: " << demangle(visual.geometry.data.type().name()) << '\n';
+        std::cout << "\t\ttype: "
+                  << demangle(std::visit([](auto && arg) -> const std::type_info & { return typeid(arg); },
+                                         visual.geometry.data)
+                                  .name())
+                  << '\n';
       }
     }
   }

@@ -138,7 +138,7 @@ std::string to_urdf(const ParserResult & res)
           material_node->SetAttribute("name", ("material_" + link.name() + "_" + std::to_string(i)).c_str());
           if(material.type == Material::Type::COLOR)
           {
-            const auto & c = boost::get<Material::Color>(material.data);
+            const auto & c = std::get<Material::Color>(material.data);
             auto color_node = doc.NewElement("color");
             std::stringstream ss;
             ss.imbue(std::locale::classic());
@@ -148,7 +148,7 @@ std::string to_urdf(const ParserResult & res)
           }
           else if(material.type == Material::Type::TEXTURE)
           {
-            const auto & texture = boost::get<Material::Texture>(material.data);
+            const auto & texture = std::get<Material::Texture>(material.data);
             auto texture_node = doc.NewElement("texture");
             texture_node->SetAttribute("filename", prefix_path(texture.filename).c_str());
             material_node->InsertEndChild(texture_node);
@@ -162,7 +162,7 @@ std::string to_urdf(const ParserResult & res)
           case Geometry::Type::BOX:
           {
             auto node = doc.NewElement("box");
-            const auto box = boost::get<Geometry::Box>(visual.geometry.data);
+            const auto box = std::get<Geometry::Box>(visual.geometry.data);
             set_vec3d(node, "size", box.size);
             geometry_node->InsertEndChild(node);
           }
@@ -170,7 +170,7 @@ std::string to_urdf(const ParserResult & res)
           case Geometry::Type::CYLINDER:
           {
             auto node = doc.NewElement("cylinder");
-            const auto cylinder = boost::get<Geometry::Cylinder>(visual.geometry.data);
+            const auto cylinder = std::get<Geometry::Cylinder>(visual.geometry.data);
             set_double(node, "radius", cylinder.radius);
             set_double(node, "length", cylinder.length);
             geometry_node->InsertEndChild(node);
@@ -179,7 +179,7 @@ std::string to_urdf(const ParserResult & res)
           case Geometry::Type::MESH:
           {
             auto node = doc.NewElement("mesh");
-            const auto mesh = boost::get<Geometry::Mesh>(visual.geometry.data);
+            const auto mesh = std::get<Geometry::Mesh>(visual.geometry.data);
             node->SetAttribute("filename", prefix_path(mesh.filename).c_str());
             set_vec3d(node, "scale", mesh.scaleV);
             geometry_node->InsertEndChild(node);
@@ -188,7 +188,7 @@ std::string to_urdf(const ParserResult & res)
           case Geometry::Type::SPHERE:
           {
             auto node = doc.NewElement("sphere");
-            const auto sphere = boost::get<Geometry::Sphere>(visual.geometry.data);
+            const auto sphere = std::get<Geometry::Sphere>(visual.geometry.data);
             set_double(node, "radius", sphere.radius);
             geometry_node->InsertEndChild(node);
           }
@@ -196,7 +196,7 @@ std::string to_urdf(const ParserResult & res)
           case Geometry::Type::SUPERELLIPSOID:
           {
             auto node = doc.NewElement("superellipsoid");
-            const auto superellipsoid = boost::get<Geometry::Superellipsoid>(visual.geometry.data);
+            const auto superellipsoid = std::get<Geometry::Superellipsoid>(visual.geometry.data);
             set_vec3d(node, "size", superellipsoid.size);
             set_double(node, "epsilon1", superellipsoid.epsilon1);
             set_double(node, "epsilon2", superellipsoid.epsilon2);

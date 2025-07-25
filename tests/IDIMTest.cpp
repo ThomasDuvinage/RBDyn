@@ -6,9 +6,8 @@
 // std
 #include <iostream>
 
-// boost
-#define BOOST_TEST_MODULE IDIMTest
-#include <boost/test/unit_test.hpp>
+// google test
+#include <gtest/gtest.h>
 
 // SpaceVecAlg
 #include <SpaceVecAlg/SpaceVecAlg>
@@ -30,7 +29,7 @@ sva::RBInertiad randomInertia()
   return rbd::vectorToInertia(v);
 }
 
-BOOST_AUTO_TEST_CASE(toFrom10Vec)
+TEST(IDIMTest, toFrom10Vec)
 {
   using namespace Eigen;
   using namespace sva;
@@ -45,10 +44,10 @@ BOOST_AUTO_TEST_CASE(toFrom10Vec)
   auto vec10d = inertiaToVector(rbi);
   RBInertiad rbi2 = vectorToInertia(vec10d);
 
-  BOOST_CHECK_EQUAL(rbi, rbi2);
+  EXPECT_EQ(rbi, rbi2);
 }
 
-BOOST_AUTO_TEST_CASE(IMPhiTest)
+TEST(IDIMTest, IMPhiTest)
 {
   using namespace Eigen;
   using namespace sva;
@@ -63,7 +62,7 @@ BOOST_AUTO_TEST_CASE(IMPhiTest)
     ForceVecd res1 = rbi * m;
     ForceVecd res2(IMPhi(m) * inertiaToVector(rbi));
 
-    BOOST_CHECK_SMALL((res1 - res2).vector().norm(), 1e-8);
+    EXPECT_NEAR((res1 - res2).vector().norm(), 0.0, 1e-8);
   }
 
   // test that m x^* Im = m x^* IMPhi(m)*phi_i
@@ -75,11 +74,11 @@ BOOST_AUTO_TEST_CASE(IMPhiTest)
     ForceVecd res1 = m.crossDual(rbi * m);
     ForceVecd res2((vector6ToCrossDualMatrix(m.vector()) * IMPhi(m)) * inertiaToVector(rbi));
 
-    BOOST_CHECK_SMALL((res1 - res2).vector().norm(), 1e-8);
+    EXPECT_NEAR((res1 - res2).vector().norm(), 0.0, 1e-8);
   }
 }
 
-BOOST_AUTO_TEST_CASE(computeY)
+TEST(IDIMTest, computeY)
 {
   using namespace Eigen;
   using namespace sva;
@@ -125,6 +124,12 @@ BOOST_AUTO_TEST_CASE(computeY)
     paramToVector(mbc.jointTorque, idTorque);
     idimTorque = idim.Y() * inertiaVec;
 
-    BOOST_CHECK_SMALL((idTorque - idimTorque).norm(), 1e-8);
+    EXPECT_NEAR((idTorque - idimTorque).norm(), 0.0, 1e-8);
   }
+}
+
+int main(int argc, char ** argv)
+{
+  testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }

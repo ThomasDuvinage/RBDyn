@@ -6,9 +6,8 @@
 // std
 #include <iostream>
 
-// boost
-#define BOOST_TEST_MODULE MomentumTest
-#include <boost/test/unit_test.hpp>
+// google test
+#include <gtest/gtest.h>
 
 // RBDyn
 #include "RBDyn/CoM.h"
@@ -25,7 +24,7 @@
 
 const double TOL = 1e-6;
 
-BOOST_AUTO_TEST_CASE(centroidalMomentum)
+TEST(MomentumTest, centroidalMomentum)
 {
   using namespace Eigen;
   using namespace sva;
@@ -51,8 +50,8 @@ BOOST_AUTO_TEST_CASE(centroidalMomentum)
 
     ForceVecd momentumM(cmm.matrix() * alpha);
 
-    BOOST_CHECK_EQUAL(momentum.vector().norm(), 0.);
-    BOOST_CHECK_EQUAL(momentumM.vector().norm(), 0.);
+    EXPECT_EQ(momentum.vector().norm(), 0.);
+    EXPECT_EQ(momentumM.vector().norm(), 0.);
   }
 
   // test J·q against computeCentroidalMomentum
@@ -73,7 +72,7 @@ BOOST_AUTO_TEST_CASE(centroidalMomentum)
 
     ForceVecd momentumM(cmm.matrix() * alpha);
 
-    BOOST_CHECK_SMALL((momentum - momentumM).vector().norm(), TOL);
+    EXPECT_NEAR((momentum - momentumM).vector().norm(), 0.0, TOL);
   }
 
   // test J·q against CentroidalMomentumMatrix::momentum
@@ -102,11 +101,11 @@ BOOST_AUTO_TEST_CASE(centroidalMomentum)
 
     ForceVecd momentumM(cmmW.matrix() * alpha);
 
-    BOOST_CHECK_SMALL((momentum - momentumM).vector().norm(), TOL);
+    EXPECT_NEAR((momentum - momentumM).vector().norm(), 0.0, TOL);
   }
 }
 
-BOOST_AUTO_TEST_CASE(centroidalMomentumDot)
+TEST(MomentumTest, centroidalMomentumDot)
 {
   using namespace Eigen;
   using namespace sva;
@@ -150,14 +149,14 @@ BOOST_AUTO_TEST_CASE(centroidalMomentumDot)
       Vector6d momentumDotCMM = cmmMatrix * alphaD + cmmMatrixDot * alpha;
 
       // check that the momentum are the same
-      BOOST_CHECK_SMALL((momentumDot.vector() - momentumDotCMM).norm(), TOL);
+      EXPECT_NEAR((momentumDot.vector() - momentumDotCMM).norm(), 0.0, TOL);
 
       // check that each compute compute the same thing
       cmm.computeMatrix(mb, mbc, oldCom);
       cmm.computeMatrixDot(mb, mbc, oldCom, oldComVel);
 
-      BOOST_CHECK_SMALL((cmmMatrix - cmm.matrix()).norm(), TOL);
-      BOOST_CHECK_SMALL((cmmMatrixDot - cmm.matrixDot()).norm(), TOL);
+      EXPECT_NEAR((cmmMatrix - cmm.matrix()).norm(), 0.0, TOL);
+      EXPECT_NEAR((cmmMatrixDot - cmm.matrixDot()).norm(), 0.0, TOL);
 
       rbd::integration(mb, mbc, 1e-8);
 
@@ -172,7 +171,7 @@ BOOST_AUTO_TEST_CASE(centroidalMomentumDot)
       ForceVecd newMomentum = rbd::computeCentroidalMomentum(mb, mbc, newCom);
       ForceVecd momentumDotDiff = (newMomentum - oldMomentum) * (1. / 1e-8);
 
-      BOOST_CHECK_SMALL((momentumDot - momentumDotDiff).vector().norm(), TOL);
+      EXPECT_NEAR((momentumDot - momentumDotDiff).vector().norm(), 0.0, TOL);
     }
   }
 
@@ -208,7 +207,13 @@ BOOST_AUTO_TEST_CASE(centroidalMomentumDot)
 
     ForceVecd normalMomentumDotM(cmmW.matrixDot() * alpha);
 
-    BOOST_CHECK_SMALL((normalMomentumDot1 - normalMomentumDotM).vector().norm(), TOL);
-    BOOST_CHECK_SMALL((normalMomentumDot2 - normalMomentumDotM).vector().norm(), TOL);
+    EXPECT_NEAR((normalMomentumDot1 - normalMomentumDotM).vector().norm(), 0.0, TOL);
+    EXPECT_NEAR((normalMomentumDot2 - normalMomentumDotM).vector().norm(), 0.0, TOL);
   }
+}
+
+int main(int argc, char ** argv)
+{
+  testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }

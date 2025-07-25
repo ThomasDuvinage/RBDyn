@@ -63,8 +63,7 @@ To compile you need the following tools:
  * [CMake]() >= 2.8
  * [pkg-config]()
  * [doxygen]()
- * [g++]() >= 4.7 (for C++11 support)
- * [Boost](http://www.boost.org/doc/libs/1_58_0/more/getting_started/unix-variants.html) >= 1.49
+ * [g++]() ≥ 7.0 (for full C++17 support)
  * [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page) >= 3.2
  * [SpaceVecAlg](https://github.com/jrl-umi3218/SpaceVecAlg)
 
@@ -102,7 +101,7 @@ Documentation
 -----
 
 Features:
- * Kinematics tree Kinematics and Dynamics algorithm C++11 implementation
+ * Kinematics tree Kinematics and Dynamics algorithm C++17 implementation
  * Use Eigen3 and [SpaceVecAlg](https://github.com/jrl-umi3218/SpaceVecAlg) library
  * Free, Spherical, Planar, Cylindrical, Revolute, Prismatic joint support
  * Translation, Rotation, Vector, CoM, Momentum Jacobian computation

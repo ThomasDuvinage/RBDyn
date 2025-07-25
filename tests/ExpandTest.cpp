@@ -2,15 +2,12 @@
  * Copyright 2012-2019 CNRS-UM LIRMM, CNRS-AIST JRL
  */
 
+#include <RBDyn/FK.h>
+#include <RBDyn/FV.h>
 #include <RBDyn/Jacobian.h>
 
 #include "Tree30Dof.h"
-
-#define BOOST_TEST_MODULE Expand
-#include <RBDyn/FK.h>
-#include <RBDyn/FV.h>
-
-#include <boost/test/unit_test.hpp>
+#include <gtest/gtest.h>
 
 const double TOL = 1e-10;
 
@@ -25,7 +22,7 @@ void setRandomFreeFlyer(rbd::MultiBodyConfig & mbc)
   mbc.q[0][3] = qd.z();
 }
 
-BOOST_AUTO_TEST_CASE(ExpandJacobianTest)
+TEST(ExpandTest, ExpandJacobianTest)
 {
   std::srand(133757348);
 
@@ -61,16 +58,22 @@ BOOST_AUTO_TEST_CASE(ExpandJacobianTest)
     Eigen::MatrixXd product = jacMat.transpose() * jacMat;
     Eigen::MatrixXd fullProduct = jac.expand(mb, product);
 
-    BOOST_CHECK_SMALL((fullProduct - res).norm(), TOL);
+    EXPECT_NEAR((fullProduct - res).norm(), 0.0, TOL);
 
     fullProduct.setZero();
     jac.expandAdd(mb, product, fullProduct);
 
-    BOOST_CHECK_SMALL((fullProduct - res).norm(), TOL);
+    EXPECT_NEAR((fullProduct - res).norm(), 0.0, TOL);
 
     fullProduct.setZero();
     jac.expandAdd(compact, product, fullProduct);
 
-    BOOST_CHECK_SMALL((fullProduct - res).norm(), TOL);
+    EXPECT_NEAR((fullProduct - res).norm(), 0.0, TOL);
   }
+}
+
+int main(int argc, char ** argv)
+{
+  testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }

@@ -6,9 +6,9 @@
 // std
 #include <iostream>
 
-// boost
-#define BOOST_TEST_MODULE CoMTest
-#include <boost/test/unit_test.hpp>
+// google test
+#include "CollectionTest.h"
+#include <gtest/gtest.h>
 
 // SpaceVecAlg
 #include <SpaceVecAlg/SpaceVecAlg>
@@ -95,7 +95,7 @@ std::tuple<rbd::MultiBody, rbd::MultiBodyConfig, rbd::MultiBodyGraph> makeXYZSar
   return std::make_tuple(mb, mbc, mbg);
 }
 
-BOOST_AUTO_TEST_CASE(computeCoMTest)
+TEST(CoMTest, computeCoMTest)
 {
   using namespace Eigen;
   using namespace sva;
@@ -156,9 +156,9 @@ BOOST_AUTO_TEST_CASE(computeCoMTest)
   double handCoMX = 0.;
   double handCoMY = (0.5 * 1. + 1. * 2. + 1.5 * 1.) / 5.;
   double handCoMZ = 0.;
-  BOOST_CHECK_EQUAL(CoM, Vector3d(handCoMX, handCoMY, handCoMZ));
-  BOOST_CHECK_EQUAL(CoMV, Vector3d::Zero());
-  BOOST_CHECK_EQUAL(CoMA, Vector3d::Zero());
+  EXPECT_EQ(CoM, Vector3d(handCoMX, handCoMY, handCoMZ));
+  EXPECT_EQ(CoMV, Vector3d::Zero());
+  EXPECT_EQ(CoMA, Vector3d::Zero());
 
   mbc.q = {{}, {rbd::PI / 2.}, {0.}, {0.}};
   forwardKinematics(mb, mbc);
@@ -173,22 +173,22 @@ BOOST_AUTO_TEST_CASE(computeCoMTest)
   handCoMY = (0.5 * 1. + 0.5 * 2 + 0.5 * 1.) / 5.;
   handCoMZ = (0.5 * 2. + 1. * 1.) / 5.;
 
-  BOOST_CHECK_EQUAL(CoM, Vector3d(handCoMX, handCoMY, handCoMZ));
-  BOOST_CHECK_EQUAL(CoMV, Vector3d::Zero());
-  BOOST_CHECK_EQUAL(CoMA, Vector3d::Zero());
+  EXPECT_EQ(CoM, Vector3d(handCoMX, handCoMY, handCoMZ));
+  EXPECT_EQ(CoMV, Vector3d::Zero());
+  EXPECT_EQ(CoMA, Vector3d::Zero());
 
   // test safe version
   mbc.bodyPosW = {I, I, I};
-  BOOST_CHECK_THROW(sComputeCoM(mb, mbc), std::domain_error);
-  BOOST_CHECK_THROW(sComputeCoMVelocity(mb, mbc), std::domain_error);
-  BOOST_CHECK_THROW(sComputeCoMAcceleration(mb, mbc), std::domain_error);
+  EXPECT_THROW(sComputeCoM(mb, mbc), std::domain_error);
+  EXPECT_THROW(sComputeCoMVelocity(mb, mbc), std::domain_error);
+  EXPECT_THROW(sComputeCoMAcceleration(mb, mbc), std::domain_error);
 
   mbc.bodyPosW = {I, I, I, I};
   mbc.bodyVelB = {v, v, v};
   mbc.bodyAccB = {v, v, v};
-  BOOST_CHECK_NO_THROW(sComputeCoM(mb, mbc));
-  BOOST_CHECK_THROW(sComputeCoMVelocity(mb, mbc), std::domain_error);
-  BOOST_CHECK_THROW(sComputeCoMAcceleration(mb, mbc), std::domain_error);
+  EXPECT_NO_THROW(sComputeCoM(mb, mbc));
+  EXPECT_THROW(sComputeCoMVelocity(mb, mbc), std::domain_error);
+  EXPECT_THROW(sComputeCoMAcceleration(mb, mbc), std::domain_error);
 }
 
 Eigen::Vector3d makeCoMDotFromStep(const rbd::MultiBody & mb, const rbd::MultiBodyConfig & mbc)
@@ -230,7 +230,7 @@ Eigen::MatrixXd makeJDotFromStep(const rbd::MultiBody & mb,
   return (nJ - oJ) / step;
 }
 
-BOOST_AUTO_TEST_CASE(CoMJacobianDummyTest)
+TEST(CoMTest, CoMJacobianDummyTest)
 {
   using namespace Eigen;
   using namespace sva;
@@ -268,8 +268,8 @@ BOOST_AUTO_TEST_CASE(CoMJacobianDummyTest)
     MatrixXd CJac = comJac.jacobian(mb, mbc);
     MatrixXd CJacDot = comJac.jacobianDot(mb, mbc);
 
-    BOOST_CHECK_EQUAL(CJac.rows(), 3);
-    BOOST_CHECK_EQUAL(CJac.cols(), mb.nrDof());
+    EXPECT_EQ(CJac.rows(), 3);
+    EXPECT_EQ(CJac.cols(), mb.nrDof());
 
     VectorXd alpha = dofToVector(mb, mbc.alpha);
     VectorXd alphaD = dofToVector(mb, mbc.alphaD);
@@ -277,9 +277,9 @@ BOOST_AUTO_TEST_CASE(CoMJacobianDummyTest)
     Vector3d CDot = CJac * alpha;
     Vector3d CDotDot = CJac * alphaD + CJacDot * alpha;
 
-    BOOST_CHECK_SMALL((CDot_diff - CDot).norm(), TOL);
-    BOOST_CHECK_SMALL((CDot_diff - CoMVel).norm(), TOL);
-    BOOST_CHECK_SMALL((CDotDot - CoMAcc).norm(), TOL);
+    EXPECT_NEAR((CDot_diff - CDot).norm(), 0.0, TOL);
+    EXPECT_NEAR((CDot_diff - CoMVel).norm(), 0.0, TOL);
+    EXPECT_NEAR((CDotDot - CoMAcc).norm(), 0.0, TOL);
   };
 
   for(int i = 0; i < mb.nrJoints(); ++i)
@@ -355,7 +355,7 @@ BOOST_AUTO_TEST_CASE(CoMJacobianDummyTest)
   // test safe functions
 
   mbc.bodyPosW = {I, I, I};
-  BOOST_CHECK_THROW(comJac.sJacobian(mb, mbc), std::domain_error);
+  EXPECT_THROW(comJac.sJacobian(mb, mbc), std::domain_error);
   mbc = MultiBodyConfig(mb);
 
   /**
@@ -381,10 +381,10 @@ BOOST_AUTO_TEST_CASE(CoMJacobianDummyTest)
       MatrixXd jacDot_diff = makeJDotFromStep(mb, mbc, comJac);
       MatrixXd jacDot = comJac.jacobianDot(mb, mbc);
 
-      BOOST_CHECK_EQUAL(jacDot.rows(), 3);
-      BOOST_CHECK_EQUAL(jacDot.cols(), mb.nrDof());
+      EXPECT_EQ(jacDot.rows(), 3);
+      EXPECT_EQ(jacDot.cols(), mb.nrDof());
 
-      BOOST_CHECK_SMALL((jacDot_diff - jacDot).norm(), TOL);
+      EXPECT_NEAR((jacDot_diff - jacDot).norm(), 0.0, TOL);
       mbc.alpha[ui][uj] = 0.;
     }
   }
@@ -402,10 +402,10 @@ BOOST_AUTO_TEST_CASE(CoMJacobianDummyTest)
       MatrixXd jacDot_diff = makeJDotFromStep(mb, mbc, comJac);
       MatrixXd jacDot = comJac.jacobianDot(mb, mbc);
 
-      BOOST_CHECK_EQUAL(jacDot.rows(), 3);
-      BOOST_CHECK_EQUAL(jacDot.cols(), mb.nrDof());
+      EXPECT_EQ(jacDot.rows(), 3);
+      EXPECT_EQ(jacDot.cols(), mb.nrDof());
 
-      BOOST_CHECK_SMALL((jacDot_diff - jacDot).norm(), TOL);
+      EXPECT_NEAR((jacDot_diff - jacDot).norm(), 0.0, TOL);
       mbc.alpha[ui][uj] = 0.;
     }
   }
@@ -432,10 +432,10 @@ BOOST_AUTO_TEST_CASE(CoMJacobianDummyTest)
       MatrixXd jacDot_diff = makeJDotFromStep(mb, mbc, comJac);
       MatrixXd jacDot = comJac.jacobianDot(mb, mbc);
 
-      BOOST_CHECK_EQUAL(jacDot.rows(), 3);
-      BOOST_CHECK_EQUAL(jacDot.cols(), mb.nrDof());
+      EXPECT_EQ(jacDot.rows(), 3);
+      EXPECT_EQ(jacDot.cols(), mb.nrDof());
 
-      BOOST_CHECK_SMALL((jacDot_diff - jacDot).norm(), TOL);
+      EXPECT_NEAR((jacDot_diff - jacDot).norm(), 0.0, TOL);
       mbc.alpha[ui][uj] = 0.;
     }
   }
@@ -453,10 +453,10 @@ BOOST_AUTO_TEST_CASE(CoMJacobianDummyTest)
       MatrixXd jacDot_diff = makeJDotFromStep(mb, mbc, comJac);
       MatrixXd jacDot = comJac.jacobianDot(mb, mbc);
 
-      BOOST_CHECK_EQUAL(jacDot.rows(), 3);
-      BOOST_CHECK_EQUAL(jacDot.cols(), mb.nrDof());
+      EXPECT_EQ(jacDot.rows(), 3);
+      EXPECT_EQ(jacDot.cols(), mb.nrDof());
 
-      BOOST_CHECK_SMALL((jacDot_diff - jacDot).norm(), TOL);
+      EXPECT_NEAR((jacDot_diff - jacDot).norm(), 0.0, TOL);
       mbc.alpha[ui][uj] = 0.;
     }
   }
@@ -465,20 +465,20 @@ BOOST_AUTO_TEST_CASE(CoMJacobianDummyTest)
   // test safe functions
 
   mbc.bodyPosW = {I, I, I};
-  BOOST_CHECK_THROW(comJac.sJacobianDot(mb, mbc), std::domain_error);
+  EXPECT_THROW(comJac.sJacobianDot(mb, mbc), std::domain_error);
   mbc = MultiBodyConfig(mb);
 
   MotionVecd mv;
   mbc.bodyVelB = {mv, mv, mv};
-  BOOST_CHECK_THROW(comJac.sJacobianDot(mb, mbc), std::domain_error);
+  EXPECT_THROW(comJac.sJacobianDot(mb, mbc), std::domain_error);
   mbc = MultiBodyConfig(mb);
 
   mbc.bodyVelW = {mv, mv, mv};
-  BOOST_CHECK_THROW(comJac.sJacobianDot(mb, mbc), std::domain_error);
+  EXPECT_THROW(comJac.sJacobianDot(mb, mbc), std::domain_error);
   mbc = MultiBodyConfig(mb);
 }
 
-BOOST_AUTO_TEST_CASE(CoMJacobianTest)
+TEST(CoMTest, CoMJacobianTest)
 {
   using namespace Eigen;
   using namespace sva;
@@ -506,10 +506,10 @@ BOOST_AUTO_TEST_CASE(CoMJacobianTest)
   MatrixXd jacMat = comJac.jacobian(mb, mbc);
   MatrixXd jacDummyMat = comJacDummy.jacobian(mb, mbc);
 
-  BOOST_CHECK_EQUAL(jacMat.rows(), 3);
-  BOOST_CHECK_EQUAL(jacMat.cols(), mb.nrDof());
+  EXPECT_EQ(jacMat.rows(), 3);
+  EXPECT_EQ(jacMat.cols(), mb.nrDof());
 
-  BOOST_CHECK_SMALL((jacMat - jacDummyMat).norm(), TOL);
+  EXPECT_NEAR((jacMat - jacDummyMat).norm(), 0.0, TOL);
 
   // change configuration
   Quaterniond q;
@@ -520,7 +520,7 @@ BOOST_AUTO_TEST_CASE(CoMJacobianTest)
   jacMat = comJac.jacobian(mb, mbc);
   jacDummyMat = comJacDummy.jacobian(mb, mbc);
 
-  BOOST_CHECK_SMALL((jacMat - jacDummyMat).norm(), TOL);
+  EXPECT_NEAR((jacMat - jacDummyMat).norm(), 0.0, TOL);
 
   // Test jacobianDot
 
@@ -536,10 +536,10 @@ BOOST_AUTO_TEST_CASE(CoMJacobianTest)
       MatrixXd jacDotMat = comJac.jacobianDot(mb, mbc);
       MatrixXd jacDotDummyMat = comJacDummy.jacobianDot(mb, mbc);
 
-      BOOST_CHECK_EQUAL(jacDotMat.rows(), 3);
-      BOOST_CHECK_EQUAL(jacDotMat.cols(), mb.nrDof());
+      EXPECT_EQ(jacDotMat.rows(), 3);
+      EXPECT_EQ(jacDotMat.cols(), mb.nrDof());
 
-      BOOST_CHECK_SMALL((jacDotMat - jacDotDummyMat).norm(), TOL);
+      EXPECT_NEAR((jacDotMat - jacDotDummyMat).norm(), 0.0, TOL);
       mbc.alpha[ui][uj] = 0.;
     }
   }
@@ -556,10 +556,10 @@ BOOST_AUTO_TEST_CASE(CoMJacobianTest)
       MatrixXd jacDotMat = comJac.jacobianDot(mb, mbc);
       MatrixXd jacDotDummyMat = comJacDummy.jacobianDot(mb, mbc);
 
-      BOOST_CHECK_EQUAL(jacDotMat.rows(), 3);
-      BOOST_CHECK_EQUAL(jacDotMat.cols(), mb.nrDof());
+      EXPECT_EQ(jacDotMat.rows(), 3);
+      EXPECT_EQ(jacDotMat.cols(), mb.nrDof());
 
-      BOOST_CHECK_SMALL((jacDotMat - jacDotDummyMat).norm(), TOL);
+      EXPECT_NEAR((jacDotMat - jacDotDummyMat).norm(), 0.0, TOL);
     }
   }
 
@@ -584,7 +584,7 @@ BOOST_AUTO_TEST_CASE(CoMJacobianTest)
     Vector3d velFromJac = comJacMat * alpha;
     Vector3d velFromMbc = comJac.velocity(mb, mbc);
 
-    BOOST_CHECK_SMALL((velFromJac - velFromMbc).norm(), TOL);
+    EXPECT_NEAR((velFromJac - velFromMbc).norm(), 0.0, TOL);
 
     // test com normal acceleration
     const MatrixXd & comJacDotMat = comJac.jacobianDot(mb, mbc);
@@ -592,8 +592,8 @@ BOOST_AUTO_TEST_CASE(CoMJacobianTest)
     Vector3d normalAccFromMbc1 = comJac.normalAcceleration(mb, mbc);
     Vector3d normalAccFromMbc2 = comJac.normalAcceleration(mb, mbc, mbc.bodyAccB);
 
-    BOOST_CHECK_SMALL((normalAccFromJac - normalAccFromMbc1).norm(), TOL);
-    BOOST_CHECK_SMALL((normalAccFromJac - normalAccFromMbc2).norm(), TOL);
+    EXPECT_NEAR((normalAccFromJac - normalAccFromMbc1).norm(), 0.0, TOL);
+    EXPECT_NEAR((normalAccFromJac - normalAccFromMbc2).norm(), 0.0, TOL);
   }
 
   // create a multibody with new inertial parameter to test updateInertialParameters
@@ -604,8 +604,8 @@ BOOST_AUTO_TEST_CASE(CoMJacobianTest)
   MultiBodyConfig badMbc;
   std::tie(badMb, badMbc, badMbg) = makeXYZarm();
 
-  BOOST_CHECK_THROW(comJac.sUpdateInertialParameters(badMb), std::domain_error);
-  BOOST_CHECK_NO_THROW(comJac.sUpdateInertialParameters(mb));
+  EXPECT_THROW(comJac.sUpdateInertialParameters(badMb), std::domain_error);
+  EXPECT_NO_THROW(comJac.sUpdateInertialParameters(mb));
   CoMJacobianDummy comJacDummyUpdated(mb, weight);
 
   rbd::forwardKinematics(mb, mbc);
@@ -614,11 +614,11 @@ BOOST_AUTO_TEST_CASE(CoMJacobianTest)
   // test jacobian with updated model
   jacMat = comJac.jacobian(mb, mbc);
   jacDummyMat = comJacDummyUpdated.jacobian(mb, mbc);
-  BOOST_CHECK_SMALL((jacMat - jacDummyMat).norm(), TOL);
+  EXPECT_NEAR((jacMat - jacDummyMat).norm(), 0.0, TOL);
 
   // test weight getter/setter
   std::vector<double> weight2 = comJac.weight();
-  BOOST_CHECK_EQUAL_COLLECTIONS(weight.begin(), weight.end(), weight2.begin(), weight2.end());
+  EXPECT_TRUE(CheckEqualCollections(weight.begin(), weight.end(), weight2.begin()));
 
   for(std::size_t i = 0; i < weight2.size(); ++i)
   {
@@ -626,11 +626,17 @@ BOOST_AUTO_TEST_CASE(CoMJacobianTest)
   }
 
   comJac.weight(mb, weight2);
-  BOOST_CHECK_EQUAL_COLLECTIONS(weight2.begin(), weight2.end(), comJac.weight().begin(), comJac.weight().end());
+  EXPECT_TRUE(CheckEqualCollections(weight2.begin(), weight2.end(), comJac.weight().begin()));
 
   CoMJacobianDummy comJacDummyWeight2(mb, weight2);
   // test jacobian with new weight
   jacMat = comJac.jacobian(mb, mbc);
   jacDummyMat = comJacDummyWeight2.jacobian(mb, mbc);
-  BOOST_CHECK_SMALL((jacMat - jacDummyMat).norm(), TOL);
+  EXPECT_NEAR((jacMat - jacDummyMat).norm(), 0.0, TOL);
+}
+
+int main(int argc, char ** argv)
+{
+  testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }

@@ -6,9 +6,9 @@
 // std
 #include <iostream>
 
-// boost
-#define BOOST_TEST_MODULE MultiBodyTest
-#include <boost/test/unit_test.hpp>
+// google test
+#include "CollectionTest.h"
+#include <gtest/gtest.h>
 
 // SpaceVecAlg
 #include <SpaceVecAlg/SpaceVecAlg>
@@ -29,7 +29,7 @@ namespace rbd
 static constexpr double PI = 3.141592653589793238462643383279502884e+00;
 }
 
-BOOST_AUTO_TEST_CASE(MultiBodyGraphTest)
+TEST(MultiBodyTest, MultiBodyGraphTest)
 {
   using namespace Eigen;
   using namespace sva;
@@ -42,69 +42,66 @@ BOOST_AUTO_TEST_CASE(MultiBodyGraphTest)
   Body b2(RBInertiad(), "b2");
   Body b3(RBInertiad(), "b3");
   Body b4(RBInertiad(), "b4");
-  BOOST_CHECK_NO_THROW(mbg1.addBody(b1));
-  BOOST_CHECK_NO_THROW(mbg1.addBody(b2));
-  BOOST_CHECK_NO_THROW(mbg1.addBody(b3));
-  BOOST_CHECK_NO_THROW(mbg1.addBody(b4));
+  EXPECT_NO_THROW(mbg1.addBody(b1));
+  EXPECT_NO_THROW(mbg1.addBody(b2));
+  EXPECT_NO_THROW(mbg1.addBody(b3));
+  EXPECT_NO_THROW(mbg1.addBody(b4));
 
   // name already exists
-  BOOST_CHECK_THROW(mbg1.addBody(Body(RBInertiad(), "b3")), std::domain_error);
+  EXPECT_THROW(mbg1.addBody(Body(RBInertiad(), "b3")), std::domain_error);
 
   // must be 4 nodes
-  BOOST_CHECK_EQUAL(mbg1.nrNodes(), 4);
+  EXPECT_EQ(mbg1.nrNodes(), 4);
 
   // test nodeByName
   std::shared_ptr<MultiBodyGraph::Node> node1, node2;
-  BOOST_CHECK_NO_THROW(node1 = mbg1.nodeByName("b1"));
-  BOOST_CHECK_NO_THROW(node2 = mbg1.nodeByName("b2"));
-  BOOST_CHECK_EQUAL(node1->body, b1);
-  BOOST_CHECK_EQUAL(node2->body, b2);
+  EXPECT_NO_THROW(node1 = mbg1.nodeByName("b1"));
+  EXPECT_NO_THROW(node2 = mbg1.nodeByName("b2"));
+  EXPECT_EQ(node1->body, b1);
+  EXPECT_EQ(node2->body, b2);
 
   // test addJoint
   Joint j1(Joint::RevX, true, "j1");
   Joint j2(Joint::RevX, true, "j2");
   Joint j3(Joint::RevX, true, "j3");
-  BOOST_CHECK_NO_THROW(mbg1.addJoint(j1));
-  BOOST_CHECK_NO_THROW(mbg1.addJoint(j2));
-  BOOST_CHECK_NO_THROW(mbg1.addJoint(j3));
+  EXPECT_NO_THROW(mbg1.addJoint(j1));
+  EXPECT_NO_THROW(mbg1.addJoint(j2));
+  EXPECT_NO_THROW(mbg1.addJoint(j3));
 
   // name already exists
-  BOOST_CHECK_THROW(mbg1.addJoint(Joint(Joint::RevX, true, "j3")), std::domain_error);
+  EXPECT_THROW(mbg1.addJoint(Joint(Joint::RevX, true, "j3")), std::domain_error);
 
   // must be 3 joints
-  BOOST_CHECK_EQUAL(mbg1.nrJoints(), 3);
+  EXPECT_EQ(mbg1.nrJoints(), 3);
 
   // test jointByName
   std::shared_ptr<Joint> joint1, joint2, joint3;
-  BOOST_CHECK_NO_THROW(joint1 = mbg1.jointByName("j1"));
-  BOOST_CHECK_NO_THROW(joint2 = mbg1.jointByName("j2"));
-  BOOST_CHECK_NO_THROW(joint3 = mbg1.jointByName("j3"));
+  EXPECT_NO_THROW(joint1 = mbg1.jointByName("j1"));
+  EXPECT_NO_THROW(joint2 = mbg1.jointByName("j2"));
+  EXPECT_NO_THROW(joint3 = mbg1.jointByName("j3"));
 
-  BOOST_CHECK_EQUAL(*joint1, j1);
-  BOOST_CHECK_EQUAL(*joint2, j2);
-  BOOST_CHECK_EQUAL(*joint3, j3);
+  EXPECT_EQ(*joint1, j1);
+  EXPECT_EQ(*joint2, j2);
+  EXPECT_EQ(*joint3, j3);
 
   // check non-existant name
-  BOOST_CHECK_THROW(mbg1.jointByName("j10"), std::out_of_range);
+  EXPECT_THROW(mbg1.jointByName("j10"), std::out_of_range);
 
   // test linkBody
   //        b2
   //   j1  /   j2      j3
   //       b1 ---- b3 ---- b4
 
-  BOOST_CHECK_NO_THROW(mbg1.linkBodies("b1", PTransformd::Identity(), "b2", PTransformd::Identity(), "j1"));
-  BOOST_CHECK_NO_THROW(mbg1.linkBodies("b1", PTransformd::Identity(), "b3", PTransformd::Identity(), "j2"));
-  BOOST_CHECK_NO_THROW(mbg1.linkBodies("b3", PTransformd::Identity(), "b4", PTransformd::Identity(), "j3"));
+  EXPECT_NO_THROW(mbg1.linkBodies("b1", PTransformd::Identity(), "b2", PTransformd::Identity(), "j1"));
+  EXPECT_NO_THROW(mbg1.linkBodies("b1", PTransformd::Identity(), "b3", PTransformd::Identity(), "j2"));
+  EXPECT_NO_THROW(mbg1.linkBodies("b3", PTransformd::Identity(), "b4", PTransformd::Identity(), "j3"));
 
   // check non-existant body 1
-  BOOST_CHECK_THROW(mbg1.linkBodies("b10", PTransformd::Identity(), "b4", PTransformd::Identity(), "j3"),
-                    std::out_of_range);
+  EXPECT_THROW(mbg1.linkBodies("b10", PTransformd::Identity(), "b4", PTransformd::Identity(), "j3"), std::out_of_range);
   // check non-existant body 2
-  BOOST_CHECK_THROW(mbg1.linkBodies("b3", PTransformd::Identity(), "b10", PTransformd::Identity(), "j3"),
-                    std::out_of_range);
+  EXPECT_THROW(mbg1.linkBodies("b3", PTransformd::Identity(), "b10", PTransformd::Identity(), "j3"), std::out_of_range);
   // check non-existant joint
-  BOOST_CHECK_THROW(mbg1.linkBodies("b3", PTransformd::Identity(), "b4", PTransformd::Identity(), "j10"),
-                    std::out_of_range);
+  EXPECT_THROW(mbg1.linkBodies("b3", PTransformd::Identity(), "b4", PTransformd::Identity(), "j10"), std::out_of_range);
 }
 
 void checkMultiBodyNames(const rbd::MultiBody & mb,
@@ -113,15 +110,15 @@ void checkMultiBodyNames(const rbd::MultiBody & mb,
 {
   for(const rbd::Body & b : mb.bodies())
   {
-    BOOST_CHECK(std::find(bodies.begin(), bodies.end(), b.name()) != bodies.end());
+    EXPECT_TRUE(std::find(bodies.begin(), bodies.end(), b.name()) != bodies.end());
   }
   for(const rbd::Joint & j : mb.joints())
   {
-    BOOST_CHECK(std::find(joints.begin(), joints.end(), j.name()) != joints.end());
+    EXPECT_TRUE(std::find(joints.begin(), joints.end(), j.name()) != joints.end());
   }
 }
 
-BOOST_AUTO_TEST_CASE(MultiBodyGraphRmTest)
+TEST(MultiBodyTest, MultiBodyGraphRmTest)
 {
   rbd::MultiBody mb;
   rbd::MultiBodyConfig mbc;
@@ -130,72 +127,72 @@ BOOST_AUTO_TEST_CASE(MultiBodyGraphRmTest)
 
   // test copy constructor
   rbd::MultiBodyGraph mbg(mbgBack);
-  BOOST_CHECK_EQUAL(mbg.nrJoints(), mbgBack.nrJoints());
-  BOOST_CHECK_EQUAL(mbg.nrNodes(), mbgBack.nrNodes());
+  EXPECT_EQ(mbg.nrJoints(), mbgBack.nrJoints());
+  EXPECT_EQ(mbg.nrNodes(), mbgBack.nrNodes());
 
-  BOOST_CHECK_EQUAL(mbg.nrJoints(), 4);
-  BOOST_CHECK_EQUAL(mbg.nrNodes(), 5);
-  BOOST_CHECK_EQUAL(mb.nrJoints(), 5);
-  BOOST_CHECK_EQUAL(mb.nrBodies(), 5);
+  EXPECT_EQ(mbg.nrJoints(), 4);
+  EXPECT_EQ(mbg.nrNodes(), 5);
+  EXPECT_EQ(mb.nrJoints(), 5);
+  EXPECT_EQ(mb.nrBodies(), 5);
 
   mbg.removeJoint("b0", "j3");
 
   mb = mbg.makeMultiBody("b0", true);
-  BOOST_CHECK_EQUAL(mbg.nrJoints(), 3);
-  BOOST_CHECK_EQUAL(mbg.nrNodes(), 4);
-  BOOST_CHECK_EQUAL(mb.nrJoints(), 4);
-  BOOST_CHECK_EQUAL(mb.nrBodies(), 4);
+  EXPECT_EQ(mbg.nrJoints(), 3);
+  EXPECT_EQ(mbg.nrNodes(), 4);
+  EXPECT_EQ(mb.nrJoints(), 4);
+  EXPECT_EQ(mb.nrBodies(), 4);
   checkMultiBodyNames(mb, {"b0", "b1", "b2", "b3"}, {"Root", "j0", "j1", "j2"});
 
   // test operator=
   mbg = mbgBack;
-  BOOST_CHECK_EQUAL(mbg.nrJoints(), mbgBack.nrJoints());
-  BOOST_CHECK_EQUAL(mbg.nrNodes(), mbgBack.nrNodes());
+  EXPECT_EQ(mbg.nrJoints(), mbgBack.nrJoints());
+  EXPECT_EQ(mbg.nrNodes(), mbgBack.nrNodes());
 
   mbg.removeJoint("b0", "j0");
   mb = mbg.makeMultiBody("b0", true);
-  BOOST_CHECK_EQUAL(mbg.nrJoints(), 0);
-  BOOST_CHECK_EQUAL(mbg.nrNodes(), 1);
-  BOOST_CHECK_EQUAL(mb.nrJoints(), 1);
-  BOOST_CHECK_EQUAL(mb.nrBodies(), 1);
+  EXPECT_EQ(mbg.nrJoints(), 0);
+  EXPECT_EQ(mbg.nrNodes(), 1);
+  EXPECT_EQ(mb.nrJoints(), 1);
+  EXPECT_EQ(mb.nrBodies(), 1);
 
-  BOOST_CHECK_EQUAL(mb.body(0).name(), "b0");
-  BOOST_CHECK_EQUAL(mb.joint(0).name(), "Root");
+  EXPECT_EQ(mb.body(0).name(), "b0");
+  EXPECT_EQ(mb.joint(0).name(), "Root");
 
   mbg = mbgBack;
-  BOOST_CHECK_EQUAL(mbg.nrJoints(), mbgBack.nrJoints());
-  BOOST_CHECK_EQUAL(mbg.nrNodes(), mbgBack.nrNodes());
+  EXPECT_EQ(mbg.nrJoints(), mbgBack.nrJoints());
+  EXPECT_EQ(mbg.nrNodes(), mbgBack.nrNodes());
 
   mbg.removeJoints("b0", std::vector<std::string>({"j3", "j2"}));
   mb = mbg.makeMultiBody("b0", true);
-  BOOST_CHECK_EQUAL(mbg.nrJoints(), 2);
-  BOOST_CHECK_EQUAL(mbg.nrNodes(), 3);
-  BOOST_CHECK_EQUAL(mb.nrJoints(), 3);
-  BOOST_CHECK_EQUAL(mb.nrBodies(), 3);
+  EXPECT_EQ(mbg.nrJoints(), 2);
+  EXPECT_EQ(mbg.nrNodes(), 3);
+  EXPECT_EQ(mb.nrJoints(), 3);
+  EXPECT_EQ(mb.nrBodies(), 3);
   checkMultiBodyNames(mb, {"b0", "b1", "b2"}, {"Root", "j0", "j1"});
 
   mbg = mbgBack;
-  BOOST_CHECK_EQUAL(mbg.nrJoints(), mbgBack.nrJoints());
-  BOOST_CHECK_EQUAL(mbg.nrNodes(), mbgBack.nrNodes());
+  EXPECT_EQ(mbg.nrJoints(), mbgBack.nrJoints());
+  EXPECT_EQ(mbg.nrNodes(), mbgBack.nrNodes());
 
   mbg.removeJoint("b0", "j1");
   mb = mbg.makeMultiBody("b0", true);
-  BOOST_CHECK_EQUAL(mbg.nrJoints(), 2);
-  BOOST_CHECK_EQUAL(mbg.nrNodes(), 3);
-  BOOST_CHECK_EQUAL(mb.nrJoints(), 3);
-  BOOST_CHECK_EQUAL(mb.nrBodies(), 3);
+  EXPECT_EQ(mbg.nrJoints(), 2);
+  EXPECT_EQ(mbg.nrNodes(), 3);
+  EXPECT_EQ(mb.nrJoints(), 3);
+  EXPECT_EQ(mb.nrBodies(), 3);
   checkMultiBodyNames(mb, {"b0", "b1", "b4"}, {"Root", "j0", "j3"});
 
   mbg = mbgBack;
-  BOOST_CHECK_EQUAL(mbg.nrJoints(), mbgBack.nrJoints());
-  BOOST_CHECK_EQUAL(mbg.nrNodes(), mbgBack.nrNodes());
+  EXPECT_EQ(mbg.nrJoints(), mbgBack.nrJoints());
+  EXPECT_EQ(mbg.nrNodes(), mbgBack.nrNodes());
 
   mbg.removeJoints("b0", std::vector<std::string>({"j1", "j2"}));
   mb = mbg.makeMultiBody("b0", true);
-  BOOST_CHECK_EQUAL(mbg.nrJoints(), 2);
-  BOOST_CHECK_EQUAL(mbg.nrNodes(), 3);
-  BOOST_CHECK_EQUAL(mb.nrJoints(), 3);
-  BOOST_CHECK_EQUAL(mb.nrBodies(), 3);
+  EXPECT_EQ(mbg.nrJoints(), 2);
+  EXPECT_EQ(mbg.nrNodes(), 3);
+  EXPECT_EQ(mb.nrJoints(), 3);
+  EXPECT_EQ(mb.nrBodies(), 3);
   checkMultiBodyNames(mb, {"b0", "b1", "b4"}, {"Root", "j0", "j3"});
 }
 
@@ -208,48 +205,48 @@ void checkMultiBodyEq(const rbd::MultiBody & mb,
                       std::vector<sva::PTransformd> Xt)
 {
   // bodies
-  BOOST_CHECK_EQUAL_COLLECTIONS(mb.bodies().begin(), mb.bodies().end(), bodies.begin(), bodies.end());
+  EXPECT_TRUE(CheckEqualCollections(mb.bodies().begin(), mb.bodies().end(), bodies.begin()));
   // joints
-  BOOST_CHECK_EQUAL_COLLECTIONS(mb.joints().begin(), mb.joints().end(), joints.begin(), joints.end());
+  EXPECT_TRUE(CheckEqualCollections(mb.joints().begin(), mb.joints().end(), joints.begin()));
   // pred
-  BOOST_CHECK_EQUAL_COLLECTIONS(mb.predecessors().begin(), mb.predecessors().end(), pred.begin(), pred.end());
+  EXPECT_TRUE(CheckEqualCollections(mb.predecessors().begin(), mb.predecessors().end(), pred.begin()));
   // succ
-  BOOST_CHECK_EQUAL_COLLECTIONS(mb.successors().begin(), mb.successors().end(), succ.begin(), succ.end());
+  EXPECT_TRUE(CheckEqualCollections(mb.successors().begin(), mb.successors().end(), succ.begin()));
   // parent
-  BOOST_CHECK_EQUAL_COLLECTIONS(mb.parents().begin(), mb.parents().end(), parent.begin(), parent.end());
+  EXPECT_TRUE(CheckEqualCollections(mb.parents().begin(), mb.parents().end(), parent.begin()));
 
   // Xt
-  BOOST_CHECK_EQUAL_COLLECTIONS(mb.transforms().begin(), mb.transforms().end(), Xt.begin(), Xt.end());
+  EXPECT_TRUE(CheckEqualCollections(mb.transforms().begin(), mb.transforms().end(), Xt.begin()));
 
   // nrBodies
-  BOOST_CHECK_EQUAL(static_cast<size_t>(mb.nrBodies()), bodies.size());
+  EXPECT_EQ(static_cast<size_t>(mb.nrBodies()), bodies.size());
   // nrJoints
-  BOOST_CHECK_EQUAL(static_cast<size_t>(mb.nrJoints()), bodies.size());
+  EXPECT_EQ(static_cast<size_t>(mb.nrJoints()), bodies.size());
 
   int params = 0, dof = 0;
   for(int i = 0; i < static_cast<int>(joints.size()); ++i)
   {
     const auto ui = static_cast<size_t>(i);
-    BOOST_CHECK_EQUAL(mb.jointPosInParam(i), params);
-    BOOST_CHECK_EQUAL(mb.jointsPosInParam()[ui], params);
-    BOOST_CHECK_EQUAL(mb.sJointPosInParam(i), params);
+    EXPECT_EQ(mb.jointPosInParam(i), params);
+    EXPECT_EQ(mb.jointsPosInParam()[ui], params);
+    EXPECT_EQ(mb.sJointPosInParam(i), params);
 
-    BOOST_CHECK_EQUAL(mb.jointPosInDof(i), dof);
-    BOOST_CHECK_EQUAL(mb.jointsPosInDof()[ui], dof);
-    BOOST_CHECK_EQUAL(mb.sJointPosInDof(i), dof);
+    EXPECT_EQ(mb.jointPosInDof(i), dof);
+    EXPECT_EQ(mb.jointsPosInDof()[ui], dof);
+    EXPECT_EQ(mb.sJointPosInDof(i), dof);
 
     params += joints[ui].params();
     dof += joints[ui].dof();
   }
 
-  BOOST_CHECK_EQUAL(params, mb.nrParams());
-  BOOST_CHECK_EQUAL(dof, mb.nrDof());
+  EXPECT_EQ(params, mb.nrParams());
+  EXPECT_EQ(dof, mb.nrDof());
 
-  BOOST_CHECK_THROW(mb.sJointPosInParam(mb.nrJoints()), std::out_of_range);
-  BOOST_CHECK_THROW(mb.sJointPosInDof(mb.nrJoints()), std::out_of_range);
+  EXPECT_THROW(mb.sJointPosInParam(mb.nrJoints()), std::out_of_range);
+  EXPECT_THROW(mb.sJointPosInDof(mb.nrJoints()), std::out_of_range);
 }
 
-BOOST_AUTO_TEST_CASE(MultiBodyTest)
+TEST(MultiBodyTest, MultiBodyTest)
 {
   using namespace Eigen;
   using namespace sva;
@@ -279,64 +276,64 @@ BOOST_AUTO_TEST_CASE(MultiBodyTest)
 
   // NameToIndex
   // bodyIndexByName
-  BOOST_CHECK_EQUAL(mb.bodyIndexByName("b1"), 0);
-  BOOST_CHECK_EQUAL(mb.bodyIndexByName("b2"), 1);
-  BOOST_CHECK_EQUAL(mb.bodyIndexByName("b3"), 2);
-  BOOST_CHECK_EQUAL(mb.bodyIndexByName("b4"), 3);
+  EXPECT_EQ(mb.bodyIndexByName("b1"), 0);
+  EXPECT_EQ(mb.bodyIndexByName("b2"), 1);
+  EXPECT_EQ(mb.bodyIndexByName("b3"), 2);
+  EXPECT_EQ(mb.bodyIndexByName("b4"), 3);
 
   // jointIndexByName
-  BOOST_CHECK_EQUAL(mb.jointIndexByName("j0"), 0);
-  BOOST_CHECK_EQUAL(mb.jointIndexByName("j1"), 1);
-  BOOST_CHECK_EQUAL(mb.jointIndexByName("j2"), 2);
-  BOOST_CHECK_EQUAL(mb.jointIndexByName("j3"), 3);
+  EXPECT_EQ(mb.jointIndexByName("j0"), 0);
+  EXPECT_EQ(mb.jointIndexByName("j1"), 1);
+  EXPECT_EQ(mb.jointIndexByName("j2"), 2);
+  EXPECT_EQ(mb.jointIndexByName("j3"), 3);
 
   // safe accessors
   // body
-  BOOST_CHECK_NO_THROW(mb.sBody(0));
-  BOOST_CHECK_THROW(mb.sBody(10), std::out_of_range);
+  EXPECT_NO_THROW(mb.sBody(0));
+  EXPECT_THROW(mb.sBody(10), std::out_of_range);
 
   // joint
-  BOOST_CHECK_NO_THROW(mb.sJoint(0));
-  BOOST_CHECK_THROW(mb.sJoint(10), std::out_of_range);
+  EXPECT_NO_THROW(mb.sJoint(0));
+  EXPECT_THROW(mb.sJoint(10), std::out_of_range);
 
   // pred
-  BOOST_CHECK_NO_THROW(mb.sPredecessor(0));
-  BOOST_CHECK_THROW(mb.sPredecessor(10), std::out_of_range);
+  EXPECT_NO_THROW(mb.sPredecessor(0));
+  EXPECT_THROW(mb.sPredecessor(10), std::out_of_range);
 
   // succ
-  BOOST_CHECK_NO_THROW(mb.sSuccessor(0));
-  BOOST_CHECK_THROW(mb.sSuccessor(10), std::out_of_range);
+  EXPECT_NO_THROW(mb.sSuccessor(0));
+  EXPECT_THROW(mb.sSuccessor(10), std::out_of_range);
 
   // parent
-  BOOST_CHECK_NO_THROW(mb.sParent(0));
-  BOOST_CHECK_THROW(mb.sParent(10), std::out_of_range);
+  EXPECT_NO_THROW(mb.sParent(0));
+  EXPECT_THROW(mb.sParent(10), std::out_of_range);
 
   // transformFrom
-  BOOST_CHECK_NO_THROW(mb.sTransform(0));
-  BOOST_CHECK_THROW(mb.sTransform(10), std::out_of_range);
+  EXPECT_NO_THROW(mb.sTransform(0));
+  EXPECT_THROW(mb.sTransform(10), std::out_of_range);
 
   // bodyIndexById
-  BOOST_CHECK_NO_THROW(mb.sBodyIndexByName("b1"));
-  BOOST_CHECK_THROW(mb.sBodyIndexByName("b10"), std::out_of_range);
+  EXPECT_NO_THROW(mb.sBodyIndexByName("b1"));
+  EXPECT_THROW(mb.sBodyIndexByName("b10"), std::out_of_range);
 
   // jointIndexById
-  BOOST_CHECK_NO_THROW(mb.sJointIndexByName("j0"));
-  BOOST_CHECK_THROW(mb.sJointIndexByName("j10"), std::out_of_range);
+  EXPECT_NO_THROW(mb.sJointIndexByName("j0"));
+  EXPECT_THROW(mb.sJointIndexByName("j10"), std::out_of_range);
 
   // Setter test
 
   // transform setter
   sva::PTransformd newTrans(Vector3d(1., 1., 1));
-  BOOST_CHECK_NO_THROW(mb.sTransform(1, newTrans));
-  BOOST_CHECK_THROW(mb.sTransform(10, newTrans), std::out_of_range);
-  BOOST_CHECK_EQUAL(mb.transform(1), newTrans);
+  EXPECT_NO_THROW(mb.sTransform(1, newTrans));
+  EXPECT_THROW(mb.sTransform(10, newTrans), std::out_of_range);
+  EXPECT_EQ(mb.transform(1), newTrans);
   mb.transform(0, newTrans);
-  BOOST_CHECK_EQUAL(mb.transform(0), newTrans);
+  EXPECT_EQ(mb.transform(0), newTrans);
 
   // transforms setter
   std::vector<PTransformd> newXt = {newTrans, newTrans, I, tmp};
-  BOOST_CHECK_NO_THROW(mb.sTransforms(newXt));
-  BOOST_CHECK_THROW(mb.sTransforms({newTrans, newTrans, I}), std::runtime_error);
+  EXPECT_NO_THROW(mb.sTransforms(newXt));
+  EXPECT_THROW(mb.sTransforms({newTrans, newTrans, I}), std::runtime_error);
   checkMultiBodyEq(mb, bodies, joints, pred, succ, parent, newXt);
 
   // body setter
@@ -344,20 +341,20 @@ BOOST_AUTO_TEST_CASE(MultiBodyTest)
   Body oldBody(mb.body(b3Index));
   RBInertiad newR(123., Vector3d::Random(), Matrix3d::Random());
   Body newBody(newR, "b3");
-  BOOST_CHECK_NO_THROW(mb.sBody(b3Index, newBody));
-  BOOST_CHECK_THROW(mb.sBody(10, newBody), std::out_of_range);
-  BOOST_CHECK_EQUAL(mb.body(b3Index), newBody);
+  EXPECT_NO_THROW(mb.sBody(b3Index, newBody));
+  EXPECT_THROW(mb.sBody(10, newBody), std::out_of_range);
+  EXPECT_EQ(mb.body(b3Index), newBody);
   mb.body(b3Index, oldBody);
-  BOOST_CHECK_EQUAL(mb.body(b3Index), oldBody);
+  EXPECT_EQ(mb.body(b3Index), oldBody);
 
   // bodies setter
   std::vector<Body> newBodies = {Body(newR, "b1"), Body(newR, "b2"), Body(newR, "b3"), Body(r, "b4")};
-  BOOST_CHECK_NO_THROW(mb.sBodies(newBodies));
-  BOOST_CHECK_THROW(mb.sBodies({Body(newR, "b1"), Body(newR, "b2")}), std::runtime_error);
+  EXPECT_NO_THROW(mb.sBodies(newBodies));
+  EXPECT_THROW(mb.sBodies({Body(newR, "b1"), Body(newR, "b2")}), std::runtime_error);
   checkMultiBodyEq(mb, bodies, joints, pred, succ, parent, newXt);
 }
 
-BOOST_AUTO_TEST_CASE(MakeMultiBodyTest)
+TEST(MultiBodyTest, MakeMultiBodyTest)
 {
   using namespace Eigen;
   using namespace sva;
@@ -393,31 +390,31 @@ BOOST_AUTO_TEST_CASE(MakeMultiBodyTest)
   //           j1  /  j2      j3
   // root -fixed- b1 ---- b3 ---- b4
 
-  BOOST_CHECK_NO_THROW(mbg1.makeMultiBody("b1", true));
-  BOOST_CHECK_THROW(mbg1.makeMultiBody("b10", true), std::out_of_range);
+  EXPECT_NO_THROW(mbg1.makeMultiBody("b1", true));
+  EXPECT_THROW(mbg1.makeMultiBody("b10", true), std::out_of_range);
 
   // test the successorJoints and predecessorJoint function
   auto testSucc = [](const std::map<std::string, std::vector<std::string>> & s1,
                      const std::map<std::string, std::vector<std::string>> & s2)
   {
-    BOOST_CHECK_EQUAL(s1.size(), s2.size());
+    EXPECT_EQ(s1.size(), s2.size());
     auto it1 = s1.begin();
     auto it2 = s2.begin();
     for(; it1 != s1.end(); ++it1, ++it2)
     {
-      BOOST_CHECK_EQUAL(it1->first, it2->first);
-      BOOST_CHECK_EQUAL_COLLECTIONS(it1->second.begin(), it1->second.end(), it2->second.begin(), it2->second.end());
+      EXPECT_EQ(it1->first, it2->first);
+      EXPECT_TRUE(CheckEqualCollections(it1->second.begin(), it1->second.end(), it2->second.begin()));
     }
   };
   auto testPred = [](const std::map<std::string, std::string> & s1, const std::map<std::string, std::string> & s2)
   {
-    BOOST_CHECK_EQUAL(s1.size(), s2.size());
+    EXPECT_EQ(s1.size(), s2.size());
     auto it1 = s1.begin();
     auto it2 = s2.begin();
     for(; it1 != s1.end(); ++it1, ++it2)
     {
-      BOOST_CHECK_EQUAL(it1->first, it2->first);
-      BOOST_CHECK_EQUAL(it1->second, it2->second);
+      EXPECT_EQ(it1->first, it2->first);
+      EXPECT_EQ(it1->second, it2->second);
     }
   };
   std::map<std::string, std::vector<std::string>> succRes1{
@@ -444,16 +441,16 @@ BOOST_AUTO_TEST_CASE(MakeMultiBodyTest)
   checkMultiBodyEq(mb1, bodies, joints, pred, succ, parent, Xt);
 
   // check bodyIndexById
-  BOOST_CHECK_EQUAL(mb1.bodyIndexByName("b1"), 0);
-  BOOST_CHECK_EQUAL(mb1.bodyIndexByName("b2"), 1);
-  BOOST_CHECK_EQUAL(mb1.bodyIndexByName("b3"), 2);
-  BOOST_CHECK_EQUAL(mb1.bodyIndexByName("b4"), 3);
+  EXPECT_EQ(mb1.bodyIndexByName("b1"), 0);
+  EXPECT_EQ(mb1.bodyIndexByName("b2"), 1);
+  EXPECT_EQ(mb1.bodyIndexByName("b3"), 2);
+  EXPECT_EQ(mb1.bodyIndexByName("b4"), 3);
 
   // check jointIndexById
-  BOOST_CHECK_EQUAL(mb1.jointIndexByName("Root"), 0);
-  BOOST_CHECK_EQUAL(mb1.jointIndexByName("j1"), 1);
-  BOOST_CHECK_EQUAL(mb1.jointIndexByName("j2"), 2);
-  BOOST_CHECK_EQUAL(mb1.jointIndexByName("j3"), 3);
+  EXPECT_EQ(mb1.jointIndexByName("Root"), 0);
+  EXPECT_EQ(mb1.jointIndexByName("j1"), 1);
+  EXPECT_EQ(mb1.jointIndexByName("j2"), 2);
+  EXPECT_EQ(mb1.jointIndexByName("j3"), 3);
 
   //                b2
   //          j1  /  j2      j3
@@ -497,22 +494,22 @@ BOOST_AUTO_TEST_CASE(MakeMultiBodyTest)
   Xt = {I, I, I, I};
 
   // check joint j1 direction
-  BOOST_CHECK_EQUAL(mb3.joint(1).forward(), false);
+  EXPECT_EQ(mb3.joint(1).forward(), false);
 
   // check MultiBody equality
   checkMultiBodyEq(mb3, bodies, joints, pred, succ, parent, Xt);
 
   // check bodyIndexByName
-  BOOST_CHECK_EQUAL(mb3.bodyIndexByName("b1"), 1);
-  BOOST_CHECK_EQUAL(mb3.bodyIndexByName("b2"), 0);
-  BOOST_CHECK_EQUAL(mb3.bodyIndexByName("b3"), 2);
-  BOOST_CHECK_EQUAL(mb3.bodyIndexByName("b4"), 3);
+  EXPECT_EQ(mb3.bodyIndexByName("b1"), 1);
+  EXPECT_EQ(mb3.bodyIndexByName("b2"), 0);
+  EXPECT_EQ(mb3.bodyIndexByName("b3"), 2);
+  EXPECT_EQ(mb3.bodyIndexByName("b4"), 3);
 
   // check jointIndexByName
-  BOOST_CHECK_EQUAL(mb3.jointIndexByName("Root"), 0);
-  BOOST_CHECK_EQUAL(mb3.jointIndexByName("j1"), 1);
-  BOOST_CHECK_EQUAL(mb3.jointIndexByName("j2"), 2);
-  BOOST_CHECK_EQUAL(mb3.jointIndexByName("j3"), 3);
+  EXPECT_EQ(mb3.jointIndexByName("Root"), 0);
+  EXPECT_EQ(mb3.jointIndexByName("j1"), 1);
+  EXPECT_EQ(mb3.jointIndexByName("j2"), 2);
+  EXPECT_EQ(mb3.jointIndexByName("j3"), 3);
 
   // check transform                         j2
   //                       j1           tx(1)-tz(-1) --- B3
@@ -569,11 +566,11 @@ BOOST_AUTO_TEST_CASE(MakeMultiBodyTest)
   for(int i = 0; i < mb4.nrBodies(); ++i)
   {
     const auto ui = static_cast<size_t>(i);
-    BOOST_CHECK_EQUAL(mb4.body(i).inertia().momentum(), bCom[ui]);
+    EXPECT_EQ(mb4.body(i).inertia().momentum(), bCom[ui]);
   }
 }
 
-BOOST_AUTO_TEST_CASE(MultiBodyConfigFunction)
+TEST(MultiBodyTest, MultiBodyConfigFunction)
 {
   using namespace std;
   using namespace Eigen;
@@ -583,20 +580,20 @@ BOOST_AUTO_TEST_CASE(MultiBodyConfigFunction)
   std::vector<std::vector<double>> v2 = {{}, {0., 0., 0.}, {0.}, {0., 0.}, {0.}};
   VectorXd e(7);
 
-  BOOST_CHECK_NO_THROW(sParamToVector(v1, e));
-  BOOST_CHECK_NO_THROW(sVectorToParam(e, v2));
+  EXPECT_NO_THROW(sParamToVector(v1, e));
+  EXPECT_NO_THROW(sVectorToParam(e, v2));
 
   for(std::size_t i = 0; i < v1.size(); ++i)
   {
-    BOOST_CHECK_EQUAL_COLLECTIONS(v1[i].begin(), v1[i].end(), v2[i].begin(), v2[i].end());
+    EXPECT_TRUE(CheckEqualCollections(v1[i].begin(), v1[i].end(), v2[i].begin()));
   }
 
   e.resize(4);
-  BOOST_CHECK_THROW(sParamToVector(v1, e), out_of_range);
-  BOOST_CHECK_THROW(sVectorToParam(e, v2), out_of_range);
+  EXPECT_THROW(sParamToVector(v1, e), out_of_range);
+  EXPECT_THROW(sVectorToParam(e, v2), out_of_range);
 }
 
-BOOST_AUTO_TEST_CASE(MultiBodyConfigFunction2)
+TEST(MultiBodyTest, MultiBodyConfigFunction2)
 {
   using namespace std;
   using namespace Eigen;
@@ -647,36 +644,36 @@ BOOST_AUTO_TEST_CASE(MultiBodyConfigFunction2)
   paramToVector(confP, eTestP);
   paramToVector(confD, eTestD);
 
-  BOOST_CHECK_NO_THROW(e = sParamToVector(mb, confP));
-  BOOST_CHECK_THROW(sParamToVector(mb, confD), std::out_of_range);
+  EXPECT_NO_THROW(e = sParamToVector(mb, confP));
+  EXPECT_THROW(sParamToVector(mb, confD), std::out_of_range);
 
-  BOOST_CHECK_EQUAL(e, eTestP);
+  EXPECT_EQ(e, eTestP);
 
   // test dofToVector
-  BOOST_CHECK_NO_THROW(e = sDofToVector(mb, confD));
-  BOOST_CHECK_THROW(sDofToVector(mb, confP), std::out_of_range);
+  EXPECT_NO_THROW(e = sDofToVector(mb, confD));
+  EXPECT_THROW(sDofToVector(mb, confP), std::out_of_range);
 
-  BOOST_CHECK_EQUAL(e, eTestD);
+  EXPECT_EQ(e, eTestD);
 
   // test vectorToParam
   vector<vector<double>> conf;
-  BOOST_CHECK_NO_THROW(conf = sVectorToParam(mb, eTestP));
-  BOOST_CHECK_THROW(sVectorToParam(mb, eTestD), std::out_of_range);
+  EXPECT_NO_THROW(conf = sVectorToParam(mb, eTestP));
+  EXPECT_THROW(sVectorToParam(mb, eTestD), std::out_of_range);
 
-  BOOST_CHECK_EQUAL(conf.size(), confP.size());
+  EXPECT_EQ(conf.size(), confP.size());
   for(std::size_t i = 0; i < conf.size(); ++i)
   {
-    BOOST_CHECK_EQUAL_COLLECTIONS(conf[i].begin(), conf[i].end(), confP[i].begin(), confP[i].end());
+    EXPECT_TRUE(CheckEqualCollections(conf[i].begin(), conf[i].end(), confP[i].begin()));
   }
 
   // test vectorToDof
-  BOOST_CHECK_NO_THROW(conf = sVectorToDof(mb, eTestD));
-  BOOST_CHECK_THROW(sVectorToDof(mb, eTestP), std::out_of_range);
+  EXPECT_NO_THROW(conf = sVectorToDof(mb, eTestD));
+  EXPECT_THROW(sVectorToDof(mb, eTestP), std::out_of_range);
 
-  BOOST_CHECK_EQUAL(conf.size(), confD.size());
+  EXPECT_EQ(conf.size(), confD.size());
   for(std::size_t i = 0; i < conf.size(); ++i)
   {
-    BOOST_CHECK_EQUAL_COLLECTIONS(conf[i].begin(), conf[i].end(), confD[i].begin(), confD[i].end());
+    EXPECT_TRUE(CheckEqualCollections(conf[i].begin(), conf[i].end(), confD[i].begin()));
   }
 
   // test zero configuration
@@ -690,15 +687,15 @@ BOOST_AUTO_TEST_CASE(MultiBodyConfigFunction2)
     std::vector<double> zd = mb.joint(i).zeroDof();
 
     const auto ui = static_cast<size_t>(i);
-    BOOST_CHECK_EQUAL_COLLECTIONS(mbc.q[ui].begin(), mbc.q[ui].end(), zp.begin(), zp.end());
-    BOOST_CHECK_EQUAL_COLLECTIONS(mbc.alpha[ui].begin(), mbc.alpha[ui].end(), zd.begin(), zd.end());
-    BOOST_CHECK_EQUAL_COLLECTIONS(mbc.alphaD[ui].begin(), mbc.alphaD[ui].end(), zd.begin(), zd.end());
-    BOOST_CHECK_EQUAL_COLLECTIONS(mbc.jointTorque[ui].begin(), mbc.jointTorque[ui].end(), zd.begin(), zd.end());
+    EXPECT_TRUE(CheckEqualCollections(mbc.q[ui].begin(), mbc.q[ui].end(), zp.begin()));
+    EXPECT_TRUE(CheckEqualCollections(mbc.alpha[ui].begin(), mbc.alpha[ui].end(), zd.begin()));
+    EXPECT_TRUE(CheckEqualCollections(mbc.alphaD[ui].begin(), mbc.alphaD[ui].end(), zd.begin()));
+    EXPECT_TRUE(CheckEqualCollections(mbc.jointTorque[ui].begin(), mbc.jointTorque[ui].end(), zd.begin()));
   }
 
   for(size_t i = 0; i < static_cast<size_t>(mb.nrBodies()); ++i)
   {
-    BOOST_CHECK_EQUAL(mbc.force[i].vector(), Vector6d::Zero());
+    EXPECT_EQ(mbc.force[i].vector(), Vector6d::Zero());
   }
 }
 
@@ -706,19 +703,15 @@ void checkConfig(const rbd::MultiBodyConfig & mbc1, const rbd::MultiBodyConfig &
 {
   for(std::size_t i = 0; i < mbc1.q.size(); ++i)
   {
-    BOOST_CHECK_EQUAL_COLLECTIONS(mbc1.q[i].begin(), mbc1.q[i].end(), mbc2.q[i].begin(), mbc2.q[i].end());
-
-    BOOST_CHECK_EQUAL_COLLECTIONS(mbc1.alpha[i].begin(), mbc1.alpha[i].end(), mbc2.alpha[i].begin(),
-                                  mbc2.alpha[i].end());
-
-    BOOST_CHECK_EQUAL_COLLECTIONS(mbc1.alphaD[i].begin(), mbc1.alphaD[i].end(), mbc2.alphaD[i].begin(),
-                                  mbc2.alphaD[i].end());
+    EXPECT_TRUE(CheckEqualCollections(mbc1.q[i].begin(), mbc1.q[i].end(), mbc2.q[i].begin()));
+    EXPECT_TRUE(CheckEqualCollections(mbc1.alpha[i].begin(), mbc1.alpha[i].end(), mbc2.alpha[i].begin()));
+    EXPECT_TRUE(CheckEqualCollections(mbc1.alphaD[i].begin(), mbc1.alphaD[i].end(), mbc2.alphaD[i].begin()));
   }
 
-  BOOST_CHECK_EQUAL_COLLECTIONS(mbc1.force.begin(), mbc1.force.end(), mbc2.force.begin(), mbc2.force.end());
+  EXPECT_TRUE(CheckEqualCollections(mbc1.force.begin(), mbc1.force.end(), mbc1.force.begin()));
 }
 
-BOOST_AUTO_TEST_CASE(ConfigConverterTest)
+TEST(MultiBodyTest, ConfigConverterTest)
 {
   using namespace std;
   using namespace Eigen;
@@ -813,7 +806,7 @@ BOOST_AUTO_TEST_CASE(ConfigConverterTest)
   delete mb3tomb1;
 }
 
-BOOST_AUTO_TEST_CASE(MultiBodyBaseTransformTest)
+TEST(MultiBodyTest, MultiBodyBaseTransformTest)
 {
   using namespace Eigen;
 
@@ -862,11 +855,17 @@ BOOST_AUTO_TEST_CASE(MultiBodyBaseTransformTest)
     const auto mb3Index = static_cast<size_t>(mb3.bodyIndexByName(name));
     const auto mb4Index = static_cast<size_t>(mb4.bodyIndexByName(name));
     const auto ubi = static_cast<size_t>(bi);
-    BOOST_CHECK_SMALL(
+    EXPECT_NEAR(
         ((mb0ToBase[name] * mbc0.bodyPosW[ubi]).matrix() - (mb3ToBase[name] * mbc3.bodyPosW[mb3Index]).matrix()).norm(),
-        1e-8);
-    BOOST_CHECK_SMALL(
+        0.0, 1e-8);
+    EXPECT_NEAR(
         ((mb0ToBase[name] * mbc0.bodyPosW[ubi]).matrix() - (mb4ToBase[name] * mbc4.bodyPosW[mb4Index]).matrix()).norm(),
-        1e-8);
+        0.0, 1e-8);
   }
+}
+
+int main(int argc, char ** argv)
+{
+  testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }

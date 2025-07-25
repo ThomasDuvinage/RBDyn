@@ -8,10 +8,8 @@
 // std
 #include <iostream>
 
-// boost
-#define BOOST_TEST_MODULE Statics
-#include <boost/test/included/unit_test.hpp>
-#include <boost/test/output_test_stream.hpp>
+// google test
+#include <gtest/gtest.h>
 
 // SpaceVecAlg
 #include <SpaceVecAlg/SpaceVecAlg>
@@ -39,7 +37,7 @@ Eigen::IOFormat cleanFmt(2, 0, ", ", "\n", "[", "]");
 
 static constexpr double PI = 3.141592653589793238462643383279502884e+00;
 
-void test(boost::shared_ptr<boost::test_tools::output_test_stream> output,
+void test(std::shared_ptr<std::ostringstream> output,
           rbd::MultiBody & mb,
           rbd::MultiBodyConfig & mbc,
           rbd::InverseStatics & IS,
@@ -64,9 +62,9 @@ void test(boost::shared_ptr<boost::test_tools::output_test_stream> output,
   (*output) << "IS.jointTorqueDiff =\n" << IS.jointTorqueDiff() << std::endl;
 }
 
-BOOST_AUTO_TEST_CASE(XXXArmTorqueJacobian)
+TEST(InverseStaticsTest, XXXArmTorqueJacobian)
 {
-  boost::shared_ptr<boost::test_tools::output_test_stream> output = retrievePattern("InverseStaticsTest");
+  auto output = std::make_shared<std::ostringstream>();
 
   rbd::MultiBody mb;
   rbd::MultiBodyConfig mbc;
@@ -80,8 +78,6 @@ BOOST_AUTO_TEST_CASE(XXXArmTorqueJacobian)
   test(output, mb, mbc, IS, Vector3d(0.4, 0.1, 0.2));
 
   std::cout << output->str() << std::endl;
-#if not defined __i386__ && not defined __aarch64__
-  BOOST_CHECK(output->match_pattern());
-#endif
+  EXPECT_EQ(output->str(), retrievePattern("InverseStaticsTest"));
 } // end of namespace rbd
 } // namespace rbd
