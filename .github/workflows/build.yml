@@ -34,10 +34,10 @@ jobs:
         compiler: ${{ matrix.compiler }}
         build-type: ${{ matrix.build-type }}
         ubuntu: |
-          apt: cython cython3 python-numpy python3-numpy python-pytest python3-pytest python-coverage python3-coverage python-setuptools python3-setuptools libeigen3-dev doxygen doxygen-latex libtinyxml2-dev libyaml-cpp-dev
+          apt: cython cython3 python-numpy python3-numpy python-pytest python3-pytest python-coverage python3-coverage python-setuptools python3-setuptools libeigen3-dev doxygen doxygen-latex libtinyxml2-dev libyaml-cpp-dev libgtest-dev
         macos: |
           cask: gfortran
-          brew: eigen tinyxml2 yaml-cpp
+          brew: eigen tinyxml2 yaml-cpp googletest
           pip: Cython coverage numpy pytest
         windows: |
           pip: Cython coverage numpy pytest
