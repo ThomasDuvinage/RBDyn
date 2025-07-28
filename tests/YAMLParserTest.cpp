@@ -19,19 +19,19 @@ TEST(YAMLParserTest, loadTest)
   EXPECT_EQ(cppRobot.mb.nrParams(), strRobot.mb.nrParams());
   EXPECT_EQ(cppRobot.mb.nrDof(), strRobot.mb.nrDof());
 
-  EXPECT_TRUE(std::equal(cppRobot.mb.predecessors().begin(), cppRobot.mb.predecessors().end(),
+  ASSERT_TRUE(std::equal(cppRobot.mb.predecessors().begin(), cppRobot.mb.predecessors().end(),
                          strRobot.mb.predecessors().begin()));
-  EXPECT_TRUE(
+  ASSERT_TRUE(
       std::equal(cppRobot.mb.successors().begin(), cppRobot.mb.successors().end(), strRobot.mb.successors().begin()));
-  EXPECT_TRUE(std::equal(cppRobot.mb.parents().begin(), cppRobot.mb.parents().end(), strRobot.mb.parents().begin()));
-  EXPECT_TRUE(
+  ASSERT_TRUE(std::equal(cppRobot.mb.parents().begin(), cppRobot.mb.parents().end(), strRobot.mb.parents().begin()));
+  ASSERT_TRUE(
       std::equal(cppRobot.mb.transforms().begin(), cppRobot.mb.transforms().end(), strRobot.mb.transforms().begin()));
 
-  EXPECT_TRUE(std::equal(cppRobot.limits.lower.begin(), cppRobot.limits.lower.end(), strRobot.limits.lower.begin()));
-  EXPECT_TRUE(std::equal(cppRobot.limits.upper.begin(), cppRobot.limits.upper.end(), strRobot.limits.upper.begin()));
-  EXPECT_TRUE(
+  ASSERT_TRUE(std::equal(cppRobot.limits.lower.begin(), cppRobot.limits.lower.end(), strRobot.limits.lower.begin()));
+  ASSERT_TRUE(std::equal(cppRobot.limits.upper.begin(), cppRobot.limits.upper.end(), strRobot.limits.upper.begin()));
+  ASSERT_TRUE(
       std::equal(cppRobot.limits.velocity.begin(), cppRobot.limits.velocity.end(), strRobot.limits.velocity.begin()));
-  EXPECT_TRUE(std::equal(cppRobot.limits.torque.begin(), cppRobot.limits.torque.end(), strRobot.limits.torque.begin()));
+  ASSERT_TRUE(std::equal(cppRobot.limits.torque.begin(), cppRobot.limits.torque.end(), strRobot.limits.torque.begin()));
 
   for(int i = 0; i < cppRobot.mb.nrBodies(); ++i)
   {

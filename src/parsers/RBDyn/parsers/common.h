@@ -76,6 +76,8 @@ public:
     Superellipsoid() : size(Eigen::Vector3d::Zero()), epsilon1(1), epsilon2(1) {}
     Eigen::Vector3d size;
     double epsilon1, epsilon2;
+
+    bool operator==(const Superellipsoid &) const = default;
   };
 
   enum Type
